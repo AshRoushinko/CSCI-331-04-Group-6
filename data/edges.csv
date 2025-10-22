@@ -1,0 +1,55 @@
+city1,city2,distance_miles
+Rochester,Buffalo,73
+Rochester,Syracuse,87
+Rochester,Ithaca,89
+Rochester,Batavia,37
+Buffalo,Niagara,20
+Buffalo,Batavia,36
+Buffalo,Jamestown,71
+Syracuse,Albany,145
+Syracuse,Utica,55
+Syracuse,Ithaca,58
+Syracuse,Oswego,35
+Syracuse,Watertown,70
+Albany,Troy,8
+Albany,Schenectady,16
+Albany,Saratoga Springs,30
+Albany,Plattsburgh,155
+Albany,Poughkeepsie,80
+New York City,Yonkers,18
+New York City,White Plains,26
+New York City,Newburgh,60
+New York City,Poughkeepsie,75
+Ithaca,Binghamton,52
+Ithaca,Corning,42
+Ithaca,Elmira,34
+Binghamton,Syracuse,73
+Binghamton,Elmira,58
+Utica,Rome,16
+Utica,Syracuse,55
+Utica,Albany,95
+Utica,Oneonta,62
+Troy,Schenectady,10
+Troy,Saratoga Springs,25
+Poughkeepsie,Kingston,26
+Poughkeepsie,Newburgh,25
+Watertown,Syracuse,70
+Watertown,Plattsburgh,165
+Plattsburgh,Glens Falls,100
+Saratoga Springs,Glens Falls,17
+Oswego,Syracuse,35
+Oswego,Watertown,82
+Auburn,Syracuse,26
+Auburn,Ithaca,37
+Jamestown,Buffalo,71
+Jamestown,Corning,95
+Rome,Utica,16
+Rome,Syracuse,46
+Corning,Elmira,18
+Corning,Ithaca,42
+Batavia,Rochester,37
+Batavia,Buffalo,37
+Oneonta,Binghamton,65
+Oneonta,Albany,76
+Newburgh,Kingston,35
+Newburgh,Poughkeepsie,25
