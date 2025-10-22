@@ -1,0 +1,254 @@
+
+Project-3
+You will design a New York City Route Planner where ~20-30 major cities in New York State
+(e.g., Rochester, Buffalo, Syracuse, Albany, Ithaca, Binghamton, Niagara Falls, New York City,
+etc.) are represented as nodes in a graph. The edges between cities will be weighted by actual
+road distances (miles). The heuristic cost for informed search will be the straight-line distance
+between city coordinates (compute using the Haversine formula or any other alternatives). The
+start node is Rochester (RIT), and the user will choose the destination city. You should
+implement DFS, BFS, IDS, UCS, Greedy Best-First Search, A*, and IDA* search to find paths
+from Rochester to the chosen destination. For each algorithm, compare the path cost, number
+of expanded nodes, and runtime, and clearly identify which algorithm(s) return optimal solutions
+under these conditions. A graph drawing with nodes and weighted edges must be developed.
+You are required to prepare the dataset yourself (nodes, road distances, and heuristic values),
+making any reasonable assumptions whenever needed or when exact data is not obvious
+
+
+
+
+# NYC Route Planner - Project Structure & Implementation Plan
+
+## Project Directory Structure
+
+```
+CSCI-{331}-{04}-Group-{6}/
+│
+├── README.md                    # Project overview, abstract, team members, run instructions
+├── requirements.txt             # Python dependencies
+├── .gitignore                  # Git ignore file
+│
+├── code/
+│   ├── main.py                 # Main entry point for the application
+│   ├── config.py               # Configuration settings (constants, parameters)
+│   │
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── graph.py            # Graph and City classes
+│   │   ├── search_result.py    # SearchResult class
+│   │   └── priority_queue.py   # Priority queue implementation
+│   │
+│   ├── algorithms/
+│   │   ├── __init__.py
+│   │   ├── base_algorithm.py   # Abstract SearchAlgorithm class
+│   │   ├── uninformed/
+│   │   │   ├── __init__.py
+│   │   │   ├── dfs.py         # Depth-First Search
+│   │   │   ├── bfs.py         # Breadth-First Search
+│   │   │   ├── ids.py         # Iterative Deepening Search
+│   │   │   └── ucs.py         # Uniform Cost Search
+│   │   └── informed/
+│   │       ├── __init__.py
+│   │       ├── greedy.py      # Greedy Best-First Search
+│   │       ├── astar.py       # A* Search
+│   │       └── idastar.py     # IDA* Search
+│   │
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── data_loader.py     # Load cities and edges data
+│   │   ├── heuristics.py      # Heuristic calculations (Haversine, etc.)
+│   │   ├── visualizer.py      # Graph visualization and plotting
+│   │   └── route_planner.py   # Main controller class
+│   │
+│   ├── gui/
+│   │   ├── __init__.py
+│   │   └── app.py             # Optional GUI interface (Tkinter/Streamlit)
+│   │
+│   └── tests/
+│       ├── __init__.py
+│       ├── test_graph.py
+│       ├── test_algorithms.py
+│       └── test_heuristics.py
+│
+├── data/
+│   ├── cities.csv              # City data (name, latitude, longitude)
+│   ├── edges.csv               # Edge data (city1, city2, distance)
+│   ├── processed/
+│   │   └── graph.pickle        # Cached graph object
+│   └── raw/
+│       └── ny_cities_data.txt  # Original research data
+│
+├── resources/
+│   ├── papers/                 # Research papers on search algorithms
+│   │   ├── astar_paper.pdf
+│   │   └── search_algorithms_comparison.pdf
+│   ├── references.md           # List of references and resources
+│   ├── notes/
+│   │   └── algorithm_notes.md
+│   └── presentation/
+│       └── final_presentation.pptx
+│
+└── results/
+    ├── visualizations/         # Generated graphs and maps
+    ├── comparisons/           # Algorithm comparison charts
+    └── reports/              # Performance analysis reports
+
+```
+
+## Implementation Steps
+
+### Phase 1: Project Setup and Data Preparation (Week 1)
+
+1. **Repository Setup**
+   - Create GitHub repository with proper naming convention
+   - Initialize directory structure
+   - Set up .gitignore for Python projects
+   - Create initial README.md with project title and placeholder sections
+
+2. **Data Collection and Preparation**
+   - Research and collect 20-30 major NY cities with coordinates
+   - Calculate road distances using mapping APIs or approximate using coordinates
+   - Create CSV files for cities and edges
+   - Validate data consistency and completeness
+
+3. **Development Environment**
+   - Create virtual environment
+   - Install required packages (numpy, pandas, matplotlib, networkx, etc.)
+   - Create requirements.txt
+   - Set up testing framework (pytest)
+
+### Phase 2: Core Infrastructure (Week 1-2)
+
+4. **Implement Core Classes**
+   - City class with name and coordinates
+   - Graph class with adjacency list representation
+   - Priority Queue for informed searches
+   - SearchResult class for storing algorithm outputs
+
+5. **Utility Functions**
+   - Implement Haversine formula for heuristic calculations
+   - Create data loader to read CSV files and build graph
+   - Add configuration file for constants and parameters
+
+6. **Basic Visualization**
+   - Implement graph drawing using networkx and matplotlib
+   - Create function to highlight paths on the graph
+   - Add city labels and edge weights to visualization
+
+### Phase 3: Search Algorithm Implementation (Week 2-3)
+
+7. **Base Algorithm Class**
+   - Create abstract SearchAlgorithm class
+   - Implement common methods (path reconstruction, cost calculation)
+   - Add timing and node expansion tracking
+
+8. **Uninformed Search Algorithms**
+   - Implement DFS (recursive or iterative with stack)
+   - Implement BFS with queue
+   - Implement IDS (iterative deepening)
+   - Implement UCS with priority queue
+
+9. **Informed Search Algorithms**
+   - Implement Greedy Best-First Search
+   - Implement A* algorithm
+   - Implement IDA* (Iterative Deepening A*)
+
+### Phase 4: Integration and Testing (Week 3-4)
+
+10. **Route Planner Integration**
+    - Create RoutePlanner class to manage all algorithms
+    - Implement algorithm comparison functionality
+    - Add batch testing for multiple destinations
+
+11. **Comprehensive Testing**
+    - Unit tests for each algorithm
+    - Verify optimal solutions for known paths
+    - Test edge cases (unreachable destinations, same start/goal)
+    - Performance benchmarking
+
+12. **Results Analysis**
+    - Create comparison tables for all algorithms
+    - Generate performance charts (time, nodes expanded, path cost)
+    - Identify and document optimal algorithms
+
+### Phase 5: Enhancement and Documentation (Week 4)
+
+13. **User Interface**
+    - Create command-line interface for basic interaction
+    - Optional: Develop GUI using Tkinter or web interface with Streamlit
+    - Add interactive map visualization
+
+14. **Advanced Features**
+    - Add support for bidirectional search
+    - Implement path caching for frequently searched routes
+    - Add traffic simulation or time-based weights
+
+15. **Documentation and Presentation**
+    - Complete README with setup and run instructions
+    - Document algorithm complexities and trade-offs
+    - Create presentation slides with visualizations
+    - Prepare demo scenarios
+
+## Key Implementation Details
+
+### Data Structure Choices
+- **Graph Representation**: Adjacency list for efficient neighbor access
+- **Priority Queue**: Min-heap for UCS, Greedy, and A*
+- **Path Storage**: Dictionary for parent pointers during search
+
+### Algorithm Optimizations
+- **Visited Set**: Prevent revisiting nodes in graph searches
+- **Early Termination**: Stop when goal is reached (except for finding all paths)
+- **Heuristic Consistency**: Ensure admissible heuristics for optimal solutions
+
+### Performance Metrics
+- **Path Cost**: Total distance of the found path
+- **Nodes Expanded**: Number of nodes explored during search
+- **Runtime**: Wall-clock time for algorithm execution
+- **Memory Usage**: Peak memory consumption (optional)
+
+### Testing Strategy
+- **Correctness Tests**: Verify known optimal paths
+- **Performance Tests**: Measure metrics across different city pairs
+- **Stress Tests**: Large graphs or distant destinations
+- **Edge Cases**: Disconnected graphs, self-loops, invalid inputs
+
+## Dependencies (requirements.txt)
+```
+numpy>=1.21.0
+pandas>=1.3.0
+matplotlib>=3.4.0
+networkx>=2.6.0
+folium>=0.12.0  # For interactive maps
+streamlit>=1.0.0  # Optional: for web interface
+pytest>=6.2.0  # For testing
+tabulate>=0.8.9  # For formatted output
+```
+
+## Git Workflow Recommendations
+1. Use feature branches for each component
+2. Commit frequently with descriptive messages
+3. Create pull requests for code review
+4. Tag releases for milestone completions
+5. Maintain clean commit history
+
+## Deliverables Checklist
+- [ ] Functional graph with 20-30 NY cities
+- [ ] All 7 search algorithms implemented
+- [ ] Visual graph representation
+- [ ] Performance comparison analysis
+- [ ] Optimal algorithm identification
+- [ ] Complete documentation
+- [ ] Presentation materials
+- [ ] Clean, well-commented code
+- [ ] Comprehensive README
+
+
+
+
+
+
+
+
+
+
+
