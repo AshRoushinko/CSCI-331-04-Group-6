@@ -3,7 +3,7 @@
 import csv
 from pathlib import Path
 from typing import Iterable
-from heartofitall.graph import Graph
+from code.heartofitall.graph import Graph
 
 
 # cleans up white space from strings if need be

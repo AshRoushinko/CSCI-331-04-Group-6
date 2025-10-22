@@ -4,8 +4,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import time
 from typing import Dict, List
-from ..heartofitall.graph import Graph
-from ..heartofitall.search_results import SearchResult
+from code.heartofitall.graph import Graph
+from code.heartofitall.search_results import SearchResult
 
 
 # constructor
