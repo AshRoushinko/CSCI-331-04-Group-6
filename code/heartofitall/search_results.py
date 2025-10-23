@@ -20,6 +20,6 @@ class SearchResult:
 
     def __str__(self) -> str:
         return (f"{self.algorithm_name}: path={self.path}, cost={self.cost:.1f}, "
-                f"expanded={self.nodes_expanded}, time={self.runtime:.4f}s, "
+            f"expanded={self.nodes_expanded}, time={self.runtime*1000:.3f} ms, "
                 f"optimal={self.is_optimal}")
 

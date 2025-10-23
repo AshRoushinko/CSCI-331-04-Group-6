@@ -15,10 +15,11 @@ class SearchAlgorithm(ABC):
         self.start = start
         self.goal = goal
         self.nodes_expanded = 0
-        self._t0 = 0.0
+        self._t0_ns = 0
 
-    def _start_timer(self): self._t0 = time.perf_counter()
-    def _stop_timer(self) -> float: return time.perf_counter() - self._t0
+    def _start_timer(self): self._t0_ns = time.perf_counter_ns()
+
+    def _stop_timer(self) -> float:return (time.perf_counter_ns() - self._t0_ns) / 1_000_000_000.0
 
     #came_from is a dictionary mapping each node to its parent
     #current is the the goal node which will be used to backtrack
