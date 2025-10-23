@@ -12,7 +12,7 @@ class PriorityQueue:
         self._h: List[Tuple[float, int, Any]] = [] #_h is the internal heap, storing (priority, insertion_order, item)
         self._push_id = 0 #_push_id increasing counter to track insertion order
 
-    # item in this case is a city
+    # item in this case is  city
     def push(self, item: Any, priority: float) -> None:
         heapq.heappush(self._h, (float(priority), self._push_id, item))
         self._push_id += 1

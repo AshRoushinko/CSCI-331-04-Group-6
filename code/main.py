@@ -11,6 +11,6 @@ if __name__ == "__main__":
     edges_csv = project_root / "data" / "edges.csv"
 
     g = load_graph(cities_csv, edges_csv)
-    algo = UCS(g, start="Rochester", goal="Buffalo")
+    algo = UCS(g, start="Rochester", goal="Jamestown")
     result = algo.search()
     print(result)
