@@ -1,8 +1,8 @@
 from typing import Dict
 from math import inf
-from code.algorithms.base_algorithm import SearchAlgorithm
-from code.heartofitall.search_results import SearchResult
-from code.heartofitall.priority_queue import PriorityQueue
+from algorithms.base_algorithm import SearchAlgorithm
+from heartofitall.search_results import SearchResult
+from heartofitall.priority_queue import PriorityQueue
 
 class UCS(SearchAlgorithm):
 

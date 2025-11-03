@@ -1,7 +1,7 @@
-from code.algorithms.base_algorithm import SearchAlgorithm
-from code.heartofitall.search_results import SearchResult
-from code.heartofitall.priority_queue import PriorityQueue
-from code.utilities.heuristics import haversine_distance
+from algorithms.base_algorithm import SearchAlgorithm
+from heartofitall.search_results import SearchResult
+from heartofitall.priority_queue import PriorityQueue
+from utilities.heuristics import haversine_distance
 
 class GreedyBestFirst(SearchAlgorithm):
 

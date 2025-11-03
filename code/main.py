@@ -1,18 +1,19 @@
 from pathlib import Path
 
 from pathlib import Path
-from code.utilities.data_loader import load_graph
-from code.algorithms.bfs import BFS
-from code.algorithms.ucs import UCS
-from code.algorithms.greedy import GreedyBestFirst
-from code.algorithms.astar import AStar
+from utilities.data_loader import load_graph
+from algorithms.bfs import BFS
+from algorithms.dfs import DFS
+from algorithms.ucs import UCS
+from algorithms.greedy import GreedyBestFirst
+from algorithms.astar import AStar
 
 ALGOS = {
+    "DFS": DFS,
     "BFS": BFS,
     "UCS": UCS,
     "Greedy": GreedyBestFirst,
     "A*": AStar,
-    "BFS": BFS,
     # "IDS": IDS,
     # "IDA*": IDAStar,
 }
