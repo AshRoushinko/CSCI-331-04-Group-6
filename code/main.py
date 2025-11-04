@@ -28,7 +28,7 @@ def run_compare(start: str, goal: str):
     for name, cls in ALGOS.items():
         res = cls(g, start, goal).search()
         print(res)
-        results.append(res)
+        results.append(str(res))
     return results
 
 if __name__ == "__main__":
