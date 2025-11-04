@@ -1,7 +1,7 @@
 from collections import deque
 from typing import Dict, Set
-from algorithms.base_algorithm import SearchAlgorithm
-from heartofitall.search_results import SearchResult
+from code.algorithms.base_algorithm import SearchAlgorithm
+from code.heartofitall.search_results import SearchResult
 
 class BFS(SearchAlgorithm):
     def search(self) -> SearchResult:
