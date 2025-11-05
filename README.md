@@ -6,5 +6,8 @@ New York City Route Planner
     Gavin McIlvaine
 
     How to Run:
-        - TODO
+        - Install Packages pyqt6
+        - pip install pyqt6 / brew install pyqt6
+
+        - In Pycharm, click 'Run'
 
