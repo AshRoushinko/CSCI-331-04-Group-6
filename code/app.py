@@ -4,12 +4,13 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QComboBox, QVBoxLayout, QWidget, QLabel, QTextEdit
 from main import run_compare
 
+
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("NY Route Planner")
-        #self.setGeometry(200, 200, 300, 200)
+        # self.setGeometry(200, 200, 300, 200)
 
         layout = QVBoxLayout()
 
@@ -19,7 +20,6 @@ class MainWindow(QMainWindow):
         self.combobox = QComboBox()
         self.combobox.addItems(['Buffalo', 'Syracuse', 'Albany', 'New York City'])
         layout.addWidget(self.combobox)
-
 
         button = QPushButton("Find Routes")
         button.setCheckable(True)
@@ -36,15 +36,15 @@ class MainWindow(QMainWindow):
         Widget.setFont(font)
         Widget.setLayout(layout)
         self.setCentralWidget(Widget)
-        
+
         # Set the central widget of the Window.
-        #self.setCentralWidget(button)
+        # self.setCentralWidget(button)
 
     def the_button_was_clicked(self):
         print("Clicked!")
         self.output.setText(f"Finding routes from Rochester to {self.combobox.currentText()}...")
         routes = run_compare("Rochester", self.combobox.currentText())
-        #self.output.setText(f"Finding routes from Rochester to {self.combobox.currentText()}...")
+        # self.output.setText(f"Finding routes from Rochester to {self.combobox.currentText()}...")
         self.output.setText(f"Routes found: ")
         for route in routes:
             self.output.append(route)
@@ -57,3 +57,4 @@ window = MainWindow()
 window.show()
 
 app.exec()
+

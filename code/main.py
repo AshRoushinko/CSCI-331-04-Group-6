@@ -15,7 +15,6 @@ ALGOS = {
     "Greedy": GreedyBestFirst,
     "A*": AStar,
     # "IDS": IDS,
-    # "IDA*": IDAStar,
 }
 
 
@@ -33,4 +32,4 @@ def run_compare(start: str, goal: str):
 
 if __name__ == "__main__":
     # Get the project root directory (parent of 'code' directory)
-    run_compare("Rochester", "New York City")
+    run_compare("Rochester", "Yonkers")
