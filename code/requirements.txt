@@ -1,26 +1,13 @@
-# NY Route Planner Requirements
-# Python 3.8+
+# NY Route Planner GUI Requirements
+# Install with: pip install -r requirements.txt
 
-# Core GUI Framework
-PyQt5>=5.15.0
-PyQt5-Qt5>=5.15.0
-PyQt5-sip>=12.8.0
+# PyQt6 for GUI
+PyQt6==6.6.1
+PyQt6-Qt6==6.6.1
+PyQt6-sip==13.6.0
 
-# Data Visualization
-matplotlib>=3.3.0
-networkx>=2.5
+# Matplotlib for visualization
+matplotlib==3.8.2
 
-# Scientific Computing
-numpy>=1.19.0
-
-# Standard library modules (included with Python)
-# - csv
-# - json
-# - pathlib
-# - dataclasses
-# - typing
-# - concurrent.futures
-# - time
-# - math
-# - pickle
-# - abc
+# Additional dependencies (if not already installed)
+numpy==1.26.3

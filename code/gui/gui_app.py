@@ -1,67 +1,31 @@
 """
 NY Route Planner GUI Application
-A comprehensive PyQt interface for the route planning system
+A comprehensive PyQt6 interface for the route planning system
 """
 
 import sys
 import json
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 
-# --- Qt compatibility shim: prefer PyQt6, fall back to PyQt5 ---
-try:
-    from PyQt6.QtWidgets import (
-        QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-        QComboBox, QPushButton, QTextEdit, QLabel, QGroupBox,
-        QTableWidget, QTableWidgetItem, QHeaderView, QSplitter,
-        QTabWidget, QCheckBox, QSpinBox, QSlider, QProgressBar,
-        QMenuBar, QMenu, QFileDialog, QMessageBox,
-        QToolBar, QStatusBar, QGridLayout, QListWidget,
-        QRadioButton, QButtonGroup, QFrame
-    )
-    from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize
-    from PyQt6.QtGui import QFont, QPalette, QColor, QIcon, QPixmap, QAction
-    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
-    QT6 = True
-except ImportError:
-    from PyQt5.QtWidgets import (
-        QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-        QComboBox, QPushButton, QTextEdit, QLabel, QGroupBox,
-        QTableWidget, QTableWidgetItem, QHeaderView, QSplitter,
-        QTabWidget, QCheckBox, QSpinBox, QSlider, QProgressBar,
-        QMenuBar, QMenu, QAction, QFileDialog, QMessageBox,
-        QToolBar, QStatusBar, QGridLayout, QListWidget,
-        QRadioButton, QButtonGroup, QFrame
-    )
-    from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize
-    from PyQt5.QtGui import QFont, QPalette, QColor, QIcon, QPixmap
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-    QT6 = False
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QComboBox, QPushButton, QTextEdit, QLabel, QGroupBox,
+    QTableWidget, QTableWidgetItem, QHeaderView, QSplitter,
+    QTabWidget, QCheckBox, QSpinBox, QSlider, QProgressBar,
+    QMenuBar, QMenu, QFileDialog, QMessageBox,
+    QToolBar, QStatusBar, QGridLayout, QListWidget,
+    QRadioButton, QButtonGroup, QFrame
+)
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize
+from PyQt6.QtGui import QFont, QPalette, QColor, QIcon, QPixmap, QAction
 
-# Orientation shim for QSplitter
-try:
-    ORIENT_H = Qt.Orientation.Horizontal  # PyQt6
-except AttributeError:
-    ORIENT_H = Qt.Horizontal  # PyQt5
-
-# Header resize mode shim (PyQt6 uses enum)
-try:
-    HEADER_STRETCH = QHeaderView.ResizeMode.Stretch  # PyQt6
-except AttributeError:
-    HEADER_STRETCH = QHeaderView.Stretch  # PyQt5
-
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
-# Ensure project root on sys.path for 'code' package
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-# Import project modules (your project must have a top-level folder named 'code')
-from code.route_planner import RoutePlanner, ComparisonResult  # adjust if your path differs
+# Import project modules
 from code.utilities.data_loader import load_graph, get_graph_statistics
 from code.utilities.visualizer import GraphVisualizer
 from code.heartofitall.graph import Graph
@@ -69,8 +33,8 @@ from code.heartofitall.graph import Graph
 
 class AlgorithmWorker(QThread):
     """Worker thread for running algorithms without blocking GUI"""
-    progress = pyqtSignal(str)     # Algorithm name / status
-    result = pyqtSignal(object)    # SearchResult
+    progress = pyqtSignal(str)  # Algorithm name
+    result = pyqtSignal(object)  # SearchResult
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
@@ -89,7 +53,7 @@ class AlgorithmWorker(QThread):
             )
             self.result.emit(result)
         except Exception as e:
-            self.error.emit(f"{self.algorithm}: {e}")
+            self.error.emit(f"Error in {self.algorithm}: {str(e)}")
         finally:
             self.finished.emit()
 
@@ -99,11 +63,11 @@ class RouteFinderGUI(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.graph: Optional[Graph] = None
-        self.route_planner: Optional[RoutePlanner] = None
-        self.visualizer: Optional[GraphVisualizer] = None
+        self.graph = None
+        self.route_planner = None
+        self.visualizer = None
         self.current_results = []
-        self.comparison_result: Optional[ComparisonResult] = None
+        self.comparison_result = None
 
         self.initUI()
         self.load_data()
@@ -121,85 +85,237 @@ class RouteFinderGUI(QMainWindow):
             QGroupBox {
                 font-weight: bold;
                 border: 2px solid #cccccc;
-                border-radius: 8px;
+                border-radius: 5px;
                 margin-top: 10px;
+                padding-top: 10px;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 4px 0 4px;
+                left: 10px;
+                padding: 0 5px 0 5px;
             }
             QPushButton {
-                padding: 6px 10px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
             }
-            QTableWidget {
-                background: white;
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+            QComboBox {
+                padding: 5px;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
             }
         """)
 
-        central = QWidget(self)
-        self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
+        # Create menu bar
+        self.create_menu_bar()
 
-        # Tabs
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_search_tab(), "Single Search")
-        self.tabs.addTab(self.create_comparison_tab(), "Compare Algorithms")
-        layout.addWidget(self.tabs)
+        # Create toolbar
+        self.create_toolbar()
 
-        # Status Bar
-        self.statusBar().showMessage("Ready")
+        # Create status bar
+        self.statusBar = QStatusBar()
+        self.setStatusBar(self.statusBar)
+        self.statusBar.showMessage("Ready")
 
-    def create_search_tab(self):
-        """Create the single search tab"""
+        # Create central widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        # Main layout
+        main_layout = QVBoxLayout(central_widget)
+
+        # Create main content area with tabs
+        self.tab_widget = QTabWidget()
+
+        # Tab 1: Route Finding
+        self.route_tab = self.create_route_finding_tab()
+        self.tab_widget.addTab(self.route_tab, "Route Finding")
+
+        # Tab 2: Algorithm Comparison
+        self.comparison_tab = self.create_comparison_tab()
+        self.tab_widget.addTab(self.comparison_tab, "Algorithm Comparison")
+
+        # Tab 3: Graph Statistics
+        self.stats_tab = self.create_statistics_tab()
+        self.tab_widget.addTab(self.stats_tab, "Graph Statistics")
+
+        # Tab 4: Settings
+        self.settings_tab = self.create_settings_tab()
+        self.tab_widget.addTab(self.settings_tab, "Settings")
+
+        main_layout.addWidget(self.tab_widget)
+
+    def create_menu_bar(self):
+        """Create the application menu bar"""
+        menubar = self.menuBar()
+
+        # File menu
+        file_menu = menubar.addMenu('File')
+
+        export_action = QAction('Export Results', self)
+        export_action.triggered.connect(self.export_results)
+        file_menu.addAction(export_action)
+
+        file_menu.addSeparator()
+
+        exit_action = QAction('Exit', self)
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # View menu
+        view_menu = menubar.addMenu('View')
+
+        refresh_action = QAction('Refresh Graph', self)
+        refresh_action.triggered.connect(self.refresh_graph)
+        view_menu.addAction(refresh_action)
+
+        # Help menu
+        help_menu = menubar.addMenu('Help')
+
+        about_action = QAction('About', self)
+        about_action.triggered.connect(self.show_about)
+        help_menu.addAction(about_action)
+
+    def create_toolbar(self):
+        """Create the application toolbar"""
+        toolbar = QToolBar()
+        self.addToolBar(toolbar)
+
+        # Run button
+        run_action = QAction('Run Search', self)
+        run_action.triggered.connect(self.run_single_search)
+        toolbar.addAction(run_action)
+
+        toolbar.addSeparator()
+
+        # Compare button
+        compare_action = QAction('Compare All', self)
+        compare_action.triggered.connect(self.run_comparison)
+        toolbar.addAction(compare_action)
+
+        toolbar.addSeparator()
+
+        # Clear button
+        clear_action = QAction('Clear Results', self)
+        clear_action.triggered.connect(self.clear_results)
+        toolbar.addAction(clear_action)
+
+    def create_route_finding_tab(self):
+        """Create the route finding interface tab"""
         tab = QWidget()
-        layout = QVBoxLayout(tab)
+        layout = QHBoxLayout(tab)
 
-        # Top controls group
-        controls = QGroupBox("Search Controls")
-        controls_layout = QGridLayout(controls)
-
-        self.start_combo = QComboBox()
-        self.goal_combo = QComboBox()
-
-        self.algo_radio_buttons = {}
-        algo_box = QGroupBox("Algorithm")
-        algo_layout = QVBoxLayout(algo_box)
-        for name in ["BFS", "DFS", "UCS", "Greedy", "A*", "IDA*"]:
-            rb = QRadioButton(name)
-            self.algo_radio_buttons[name] = rb
-            algo_layout.addWidget(rb)
-        self.algo_radio_buttons["A*"].setChecked(True)
-
-        self.run_button = QPushButton("Run")
-        self.run_button.clicked.connect(self.run_single_search)
-
-        self.output_text = QTextEdit()
-        self.output_text.setReadOnly(True)
-        self.output_text.setMinimumHeight(140)
-
-        row = 0
-        controls_layout.addWidget(QLabel("Start:"), row, 0)
-        controls_layout.addWidget(self.start_combo, row, 1)
-        controls_layout.addWidget(QLabel("Goal:"), row, 2)
-        controls_layout.addWidget(self.goal_combo, row, 3)
-        row += 1
-        controls_layout.addWidget(algo_box, row, 0, 1, 2)
-        controls_layout.addWidget(self.run_button, row, 2, 1, 2)
-        row += 1
-        controls_layout.addWidget(self.output_text, row, 0, 1, 4)
-
-        # Left panel
+        # Left panel: Controls
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
-        left_layout.addWidget(controls)
+        left_panel.setMaximumWidth(350)
+
+        # Route Selection
+        route_group = QGroupBox("Route Selection")
+        route_layout = QGridLayout()
+
+        route_layout.addWidget(QLabel("Start City:"), 0, 0)
+        self.start_combo = QComboBox()
+        route_layout.addWidget(self.start_combo, 0, 1)
+
+        route_layout.addWidget(QLabel("Goal City:"), 1, 0)
+        self.goal_combo = QComboBox()
+        route_layout.addWidget(self.goal_combo, 1, 1)
+
+        route_group.setLayout(route_layout)
+        left_layout.addWidget(route_group)
+
+        # Algorithm Selection
+        algo_group = QGroupBox("Algorithm Selection")
+        algo_layout = QVBoxLayout()
+
+        self.algo_combo = QComboBox()
+        self.algo_combo.addItems([
+            "DFS (Depth-First Search)",
+            "BFS (Breadth-First Search)",
+            "UCS (Uniform Cost Search)",
+            "Greedy Best-First",
+            "A* Search"
+        ])
+        algo_layout.addWidget(self.algo_combo)
+
+        self.heuristic_checkbox = QCheckBox("Use Manhattan Heuristic")
+        self.heuristic_checkbox.setChecked(True)
+        algo_layout.addWidget(self.heuristic_checkbox)
+
+        algo_group.setLayout(algo_layout)
+        left_layout.addWidget(algo_group)
+
+        # Visualization Options
+        viz_group = QGroupBox("Visualization Options")
+        viz_layout = QVBoxLayout()
+
+        self.show_path_checkbox = QCheckBox("Show Path")
+        self.show_path_checkbox.setChecked(True)
+        viz_layout.addWidget(self.show_path_checkbox)
+
+        self.show_expanded_checkbox = QCheckBox("Show Expanded Nodes")
+        self.show_expanded_checkbox.setChecked(True)
+        viz_layout.addWidget(self.show_expanded_checkbox)
+
+        self.show_weights_checkbox = QCheckBox("Show Edge Weights")
+        viz_layout.addWidget(self.show_weights_checkbox)
+
+        self.animation_checkbox = QCheckBox("Animate Search")
+        viz_layout.addWidget(self.animation_checkbox)
+
+        viz_group.setLayout(viz_layout)
+        left_layout.addWidget(viz_group)
+
+        # Control Buttons
+        button_layout = QHBoxLayout()
+
+        self.run_button = QPushButton("Run Algorithm")
+        self.run_button.clicked.connect(self.run_single_search)
+        button_layout.addWidget(self.run_button)
+
+        self.clear_button = QPushButton("Clear")
+        self.clear_button.clicked.connect(self.clear_results)
+        self.clear_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+        """)
+        button_layout.addWidget(self.clear_button)
+
+        left_layout.addLayout(button_layout)
+
+        # Results Display
+        results_group = QGroupBox("Results")
+        results_layout = QVBoxLayout()
+
+        self.results_text = QTextEdit()
+        self.results_text.setReadOnly(True)
+        results_layout.addWidget(self.results_text)
+
+        results_group.setLayout(results_layout)
+        left_layout.addWidget(results_group)
+
+        left_layout.addStretch()
 
         # Right panel: Visualization
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
 
-        # Graph canvas
-        self.graph_figure = plt.Figure(figsize=(10, 8))
+        # Graph visualization
+        self.graph_figure = plt.figure(figsize=(10, 8))
         self.graph_canvas = FigureCanvas(self.graph_figure)
         self.graph_toolbar = NavigationToolbar(self.graph_canvas, self)
 
@@ -207,12 +323,8 @@ class RouteFinderGUI(QMainWindow):
         right_layout.addWidget(self.graph_canvas)
 
         # Add panels to main layout
-        splitter = QSplitter(ORIENT_H)
-        splitter.addWidget(left_panel)
-        splitter.addWidget(right_panel)
-        splitter.setSizes([350, 1050])
-
-        layout.addWidget(splitter)
+        layout.addWidget(left_panel)
+        layout.addWidget(right_panel, 1)  # Give more space to visualization
 
         return tab
 
@@ -221,154 +333,310 @@ class RouteFinderGUI(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
-        top = QGroupBox("Comparison Controls")
-        g = QGridLayout(top)
+        # Top controls
+        controls_layout = QHBoxLayout()
 
+        # City selection
+        controls_layout.addWidget(QLabel("Start:"))
         self.comp_start_combo = QComboBox()
+        controls_layout.addWidget(self.comp_start_combo)
+
+        controls_layout.addWidget(QLabel("Goal:"))
         self.comp_goal_combo = QComboBox()
+        controls_layout.addWidget(self.comp_goal_combo)
+
+        controls_layout.addStretch()
+
+        # Algorithm selection
+        algo_select_group = QGroupBox("Select Algorithms")
+        algo_select_layout = QHBoxLayout()
 
         self.algo_checkboxes = {}
-        algo_box = QGroupBox("Algorithms to compare")
-        v = QVBoxLayout(algo_box)
-        for name in ["BFS", "DFS", "UCS", "Greedy", "A*", "IDA*"]:
-            cb = QCheckBox(name)
-            cb.setChecked(name in ["UCS", "A*"])
-            self.algo_checkboxes[name] = cb
-            v.addWidget(cb)
+        algorithms = ["DFS", "BFS", "UCS", "Greedy", "A*"]
+        for algo in algorithms:
+            checkbox = QCheckBox(algo)
+            checkbox.setChecked(True)
+            self.algo_checkboxes[algo] = checkbox
+            algo_select_layout.addWidget(checkbox)
 
-        self.parallel_checkbox = QCheckBox("Run in parallel (if supported)")
-        self.compare_button = QPushButton("Compare")
+        algo_select_group.setLayout(algo_select_layout)
+        controls_layout.addWidget(algo_select_group)
+
+        # Options
+        self.parallel_checkbox = QCheckBox("Run in Parallel")
+        controls_layout.addWidget(self.parallel_checkbox)
+
+        # Run button
+        self.compare_button = QPushButton("Run Comparison")
         self.compare_button.clicked.connect(self.run_comparison)
+        controls_layout.addWidget(self.compare_button)
 
-        g.addWidget(QLabel("Start:"), 0, 0)
-        g.addWidget(self.comp_start_combo, 0, 1)
-        g.addWidget(QLabel("Goal:"), 0, 2)
-        g.addWidget(self.comp_goal_combo, 0, 3)
-        g.addWidget(algo_box, 1, 0, 1, 2)
-        g.addWidget(self.parallel_checkbox, 1, 2, 1, 2)
-        g.addWidget(self.compare_button, 2, 2, 1, 2)
+        layout.addLayout(controls_layout)
 
-        # Results table
-        self.comparison_table = QTableWidget(0, 5)
-        self.comparison_table.setHorizontalHeaderLabels(
-            ["Algorithm", "Path Length", "Cost (mi)", "Nodes Expanded", "Runtime (ms)"]
-        )
-        self.comparison_table.horizontalHeader().setSectionResizeMode(HEADER_STRETCH)
-        self.comparison_table.setMinimumHeight(180)
+        # Results section
+        splitter = QSplitter(Qt.Orientation.Vertical)
 
-        layout.addWidget(top)
-        layout.addWidget(self.comparison_table)
+        # Comparison table
+        table_widget = QWidget()
+        table_layout = QVBoxLayout(table_widget)
+        table_layout.addWidget(QLabel("Algorithm Performance:"))
+
+        self.comparison_table = QTableWidget()
+        self.comparison_table.setColumnCount(6)
+        self.comparison_table.setHorizontalHeaderLabels([
+            "Algorithm", "Path Length", "Cost", "Nodes Expanded", "Runtime (ms)", "Optimal"
+        ])
+        self.comparison_table.horizontalHeader().setStretchLastSection(True)
+        table_layout.addWidget(self.comparison_table)
+
+        splitter.addWidget(table_widget)
+
+        # Comparison charts
+        chart_widget = QWidget()
+        chart_layout = QVBoxLayout(chart_widget)
+        chart_layout.addWidget(QLabel("Performance Metrics:"))
+
+        self.comparison_figure = plt.figure(figsize=(12, 5))
+        self.comparison_canvas = FigureCanvas(self.comparison_figure)
+        chart_layout.addWidget(self.comparison_canvas)
+
+        splitter.addWidget(chart_widget)
+
+        layout.addWidget(splitter)
 
         return tab
 
-    # ----------------------- Data Loading -----------------------
+    def create_statistics_tab(self):
+        """Create the graph statistics tab"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+
+        # Statistics display
+        stats_group = QGroupBox("Graph Statistics")
+        stats_layout = QGridLayout()
+
+        self.stats_labels = {}
+        stats_info = [
+            ("Total Cities:", "total_cities"),
+            ("Total Edges:", "total_edges"),
+            ("Average Degree:", "avg_degree"),
+            ("Total Road Miles:", "total_miles"),
+            ("Min Distance:", "min_distance"),
+            ("Max Distance:", "max_distance"),
+            ("Average Distance:", "avg_distance")
+        ]
+
+        for i, (label_text, key) in enumerate(stats_info):
+            label = QLabel(label_text)
+            value_label = QLabel("N/A")
+            value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+            self.stats_labels[key] = value_label
+
+            stats_layout.addWidget(label, i, 0)
+            stats_layout.addWidget(value_label, i, 1)
+
+        stats_group.setLayout(stats_layout)
+        layout.addWidget(stats_group)
+
+        # City connections
+        connections_group = QGroupBox("City Connections")
+        connections_layout = QVBoxLayout()
+
+        self.city_list = QListWidget()
+        connections_layout.addWidget(self.city_list)
+
+        connections_group.setLayout(connections_layout)
+        layout.addWidget(connections_group)
+
+        layout.addStretch()
+
+        return tab
+
+    def create_settings_tab(self):
+        """Create the settings tab"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+
+        # Display Settings
+        display_group = QGroupBox("Display Settings")
+        display_layout = QVBoxLayout()
+
+        # Node size slider
+        node_layout = QHBoxLayout()
+        node_layout.addWidget(QLabel("Node Size:"))
+        self.node_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.node_size_slider.setRange(10, 100)
+        self.node_size_slider.setValue(50)
+        self.node_size_label = QLabel("50")
+        self.node_size_slider.valueChanged.connect(
+            lambda v: self.node_size_label.setText(str(v))
+        )
+        node_layout.addWidget(self.node_size_slider)
+        node_layout.addWidget(self.node_size_label)
+        display_layout.addLayout(node_layout)
+
+        # Edge width slider
+        edge_layout = QHBoxLayout()
+        edge_layout.addWidget(QLabel("Edge Width:"))
+        self.edge_width_slider = QSlider(Qt.Orientation.Horizontal)
+        self.edge_width_slider.setRange(1, 10)
+        self.edge_width_slider.setValue(2)
+        self.edge_width_label = QLabel("2")
+        self.edge_width_slider.valueChanged.connect(
+            lambda v: self.edge_width_label.setText(str(v))
+        )
+        edge_layout.addWidget(self.edge_width_slider)
+        edge_layout.addWidget(self.edge_width_label)
+        display_layout.addLayout(edge_layout)
+
+        display_group.setLayout(display_layout)
+        layout.addWidget(display_group)
+
+        # Performance Settings
+        perf_group = QGroupBox("Performance Settings")
+        perf_layout = QVBoxLayout()
+
+        # Max nodes spinbox
+        nodes_layout = QHBoxLayout()
+        nodes_layout.addWidget(QLabel("Max Nodes to Expand:"))
+        self.max_nodes_spinbox = QSpinBox()
+        self.max_nodes_spinbox.setRange(100, 100000)
+        self.max_nodes_spinbox.setValue(10000)
+        self.max_nodes_spinbox.setSuffix(" nodes")
+        nodes_layout.addWidget(self.max_nodes_spinbox)
+        perf_layout.addLayout(nodes_layout)
+
+        # Timeout spinbox
+        timeout_layout = QHBoxLayout()
+        timeout_layout.addWidget(QLabel("Algorithm Timeout:"))
+        self.timeout_spinbox = QSpinBox()
+        self.timeout_spinbox.setRange(1, 300)
+        self.timeout_spinbox.setValue(30)
+        self.timeout_spinbox.setSuffix(" seconds")
+        timeout_layout.addWidget(self.timeout_spinbox)
+        perf_layout.addLayout(timeout_layout)
+
+        perf_group.setLayout(perf_layout)
+        layout.addWidget(perf_group)
+
+        # Export Settings
+        export_group = QGroupBox("Export Settings")
+        export_layout = QVBoxLayout()
+
+        export_path_layout = QHBoxLayout()
+        self.export_path_label = QLabel("Export Path: [Not Set]")
+        export_path_layout.addWidget(self.export_path_label)
+
+        self.export_path_button = QPushButton("Choose Path")
+        self.export_path_button.clicked.connect(self.choose_export_path)
+        export_path_layout.addWidget(self.export_path_button)
+
+        export_layout.addLayout(export_path_layout)
+
+        export_group.setLayout(export_layout)
+        layout.addWidget(export_group)
+
+        layout.addStretch()
+
+        return tab
 
     def load_data(self):
-        """Load graph data from CSV files"""
+        """Load graph data and initialize components"""
         try:
-            # Load graph (project-relative paths)
-            base_dir = Path(__file__).resolve().parents[2]
-            cities_file = base_dir / "data" / "cities.csv"
-            edges_file  = base_dir / "data" / "edges.csv"
+            # Load graph
+            self.graph = load_graph()
 
-            # Load using a robust reader that tolerates column-name variants
-            self.graph = self.load_graph_with_fix(cities_file, edges_file)
+            # Initialize route planner
+            from code.heartofitall.route_planner import RoutePlanner
+
             self.route_planner = RoutePlanner(self.graph)
-            self.visualizer = GraphVisualizer(self.graph)
 
-            # Populate city dropdowns
-            cities = sorted(self.graph.get_all_cities())
+            # Initialize visualizer
+            self.visualizer = GraphVisualizer(self.graph, self.graph_figure)
+
+            # Populate city combos
+            cities = sorted(self.graph.nodes.keys())
             self.start_combo.addItems(cities)
             self.goal_combo.addItems(cities)
             self.comp_start_combo.addItems(cities)
             self.comp_goal_combo.addItems(cities)
 
-            # Set defaults
-            if "Rochester" in cities:
-                self.start_combo.setCurrentText("Rochester")
-                self.comp_start_combo.setCurrentText("Rochester")
-            if "New York City" in cities:
-                self.goal_combo.setCurrentText("New York City")
-                self.comp_goal_combo.setCurrentText("New York City")
+            # Set default selections
+            if "Albany" in cities:
+                self.start_combo.setCurrentText("Albany")
+                self.comp_start_combo.setCurrentText("Albany")
+            if "Buffalo" in cities:
+                self.goal_combo.setCurrentText("Buffalo")
+                self.comp_goal_combo.setCurrentText("Buffalo")
 
-            # Initial draw
-            self.draw_graph()
-            self.statusBar().showMessage("Data loaded")
+            # Update statistics
+            self.update_statistics()
+
+            # Update city list
+            for city in cities:
+                connections = len(self.graph.nodes[city].neighbors)
+                self.city_list.addItem(f"{city} ({connections} connections)")
+
+            # Initial graph draw
+            self.refresh_graph()
+
+            self.statusBar.showMessage("Data loaded successfully")
+
         except Exception as e:
-            QMessageBox.critical(self, "Error loading data", str(e))
-
-    def load_graph_with_fix(self, cities_file, edges_file):
-        """Load graph with fixed column names"""
-        graph = Graph()
-        import csv
-
-        # Load cities (handle column name variations)
-        with open(cities_file, 'r', newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                city_name = (row.get('city') or row.get('city_name') or '').strip()
-                lat = float((row.get('latitude') or row.get('lat') or row.get('latitude ') or '').strip())
-                lon = float((row.get('longitude') or row.get('lon') or '').strip())
-                if city_name:
-                    graph.add_city(city_name, lat, lon)
-
-        # Load edges (handle column name variations)
-        with open(edges_file, 'r', newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                city1 = (row.get('city1') or row.get('from') or '').strip()
-                city2 = (row.get('city2') or row.get('to') or '').strip()
-                distance = float((row.get('distance') or row.get('distance_miles') or '').strip())
-                if city1 and city2:
-                    graph.add_edge(city1, city2, distance, bidirectional=True)
-
-        return graph
-
-    # ----------------------- Single Search -----------------------
+            QMessageBox.critical(self, "Error", f"Failed to load data: {str(e)}")
+            self.statusBar.showMessage("Failed to load data")
 
     def run_single_search(self):
-        """Run a single search algorithm"""
-        selected_algo = None
-        for algo, radio in self.algo_radio_buttons.items():
-            if radio.isChecked():
-                selected_algo = algo
-                break
-
-        if not selected_algo:
-            QMessageBox.warning(self, "Warning", "Please select an algorithm")
-            return
-
+        """Run a single algorithm search"""
         start = self.start_combo.currentText()
         goal = self.goal_combo.currentText()
+        algorithm = self.algo_combo.currentText().split()[0]  # Get algorithm abbreviation
+
         if not start or not goal:
             QMessageBox.warning(self, "Warning", "Please select start and goal cities")
             return
 
-        self.output_text.clear()
+        try:
+            self.statusBar.showMessage(f"Running {algorithm}...")
 
-        # Worker thread to avoid blocking UI
-        self.worker = AlgorithmWorker(self.route_planner, selected_algo, start, goal)
-        self.worker.progress.connect(self.append_log)
-        self.worker.result.connect(self.show_single_result)
-        self.worker.error.connect(self.append_log)
-        self.worker.finished.connect(lambda: self.statusBar().showMessage("Done"))
-        self.statusBar().showMessage("Running...")
-        self.worker.start()
+            # Create worker thread
+            self.worker = AlgorithmWorker(self.route_planner, algorithm, start, goal)
+            self.worker.progress.connect(self.statusBar.showMessage)
+            self.worker.result.connect(self.display_result)
+            self.worker.error.connect(lambda msg: QMessageBox.critical(self, "Error", msg))
+            self.worker.finished.connect(lambda: self.statusBar.showMessage("Search complete"))
+            self.worker.start()
 
-    def show_single_result(self, result):
-        """Display the result of a single algorithm run"""
-        self.current_results = [result]
-        self.append_log(f"Algorithm: {result.algorithm_name}")
-        self.append_log(f"Path: {' -> '.join(result.path)}")
-        self.append_log(f"Cost: {result.cost:.2f} miles")
-        self.append_log(f"Nodes expanded: {result.nodes_expanded}")
-        self.append_log(f"Runtime: {result.runtime_ms:.2f} ms")
-        self.draw_graph(path=result.path)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Search failed: {str(e)}")
 
-    # ----------------------- Comparison -----------------------
+    def display_result(self, result):
+        """Display search result"""
+        self.current_results.append(result)
+
+        # Update results text
+        result_text = f"\n{'='*50}\n"
+        result_text += f"Algorithm: {result.algorithm_name}\n"
+        result_text += f"Start: {result.start} | Goal: {result.goal}\n"
+        result_text += f"Path: {' -> '.join(result.path)}\n"
+        result_text += f"Cost: {result.cost:.1f} miles\n"
+        result_text += f"Nodes Expanded: {result.nodes_expanded}\n"
+        result_text += f"Runtime: {result.runtime*1000:.3f} ms\n"
+        result_text += f"Optimal: {'Yes' if result.is_optimal else 'No'}\n"
+
+        self.results_text.append(result_text)
+
+        # Update visualization
+        self.visualizer.draw_search_result(
+            result,
+            show_path=self.show_path_checkbox.isChecked(),
+            show_expanded=self.show_expanded_checkbox.isChecked(),
+            show_weights=self.show_weights_checkbox.isChecked()
+        )
+        self.graph_canvas.draw()
 
     def run_comparison(self):
-        """Run comparison of multiple algorithms"""
+        """Run algorithm comparison"""
         start = self.comp_start_combo.currentText()
         goal = self.comp_goal_combo.currentText()
 
@@ -376,55 +644,201 @@ class RouteFinderGUI(QMainWindow):
             QMessageBox.warning(self, "Warning", "Please select start and goal cities")
             return
 
-        selected_algos = [algo for algo, cb in self.algo_checkboxes.items() if cb.isChecked()]
+        # Get selected algorithms
+        selected_algos = [
+            algo for algo, checkbox in self.algo_checkboxes.items()
+            if checkbox.isChecked()
+        ]
+
         if not selected_algos:
-            QMessageBox.warning(self, "Warning", "Select at least one algorithm")
+            QMessageBox.warning(self, "Warning", "Please select at least one algorithm")
             return
 
         try:
-            self.statusBar().showMessage("Comparing...")
+            self.statusBar.showMessage("Running comparison...")
+
+            # Run comparison
             parallel = self.parallel_checkbox.isChecked()
-            comparison = self.route_planner.run_comparison(start, goal, selected_algos, parallel)
+            comparison = self.route_planner.run_comparison(
+                start, goal, selected_algos, parallel
+            )
+
             self.comparison_result = comparison
 
+            # Update table
             self.comparison_table.setRowCount(len(comparison.results))
             for i, result in enumerate(comparison.results):
                 self.comparison_table.setItem(i, 0, QTableWidgetItem(result.algorithm_name))
                 self.comparison_table.setItem(i, 1, QTableWidgetItem(str(len(result.path))))
                 self.comparison_table.setItem(i, 2, QTableWidgetItem(f"{result.cost:.1f}"))
                 self.comparison_table.setItem(i, 3, QTableWidgetItem(str(result.nodes_expanded)))
-                self.comparison_table.setItem(i, 4, QTableWidgetItem(f"{result.runtime_ms:.2f}"))
+                self.comparison_table.setItem(i, 4, QTableWidgetItem(f"{result.runtime*1000:.3f}"))
 
-            # Draw best path (lowest cost)
-            best = min(comparison.results, key=lambda r: r.cost)
-            self.draw_graph(path=best.path)
-            self.append_log("Comparison complete.")
+                optimal_text = "Yes" if result.is_optimal else "No"
+                optimal_item = QTableWidgetItem(optimal_text)
+                if result.is_optimal:
+                    optimal_item.setBackground(QColor(200, 255, 200))
+                else:
+                    optimal_item.setBackground(QColor(255, 200, 200))
+                self.comparison_table.setItem(i, 5, optimal_item)
+
+            # Update comparison charts
+            self.comparison_figure.clear()
+            comparison_fig = self.visualizer.create_comparison_chart(comparison.results)
+
+            # Copy the comparison chart to our canvas
+            for ax_src in comparison_fig.axes:
+                ax_dest = self.comparison_figure.add_subplot(
+                    1, 3, comparison_fig.axes.index(ax_src) + 1
+                )
+                # Copy the content
+                for line in ax_src.lines:
+                    ax_dest.plot(line.get_xdata(), line.get_ydata())
+                for bar_container in ax_src.containers:
+                    heights = [bar.get_height() for bar in bar_container]
+                    positions = [bar.get_x() for bar in bar_container]
+                    colors = [bar.get_facecolor() for bar in bar_container]
+                    ax_dest.bar(range(len(heights)), heights, color=colors[0])
+
+                ax_dest.set_title(ax_src.get_title())
+                ax_dest.set_xlabel(ax_src.get_xlabel())
+                ax_dest.set_ylabel(ax_src.get_ylabel())
+                ax_dest.set_xticklabels([r.algorithm_name for r in comparison.results])
+                ax_dest.grid(True, alpha=0.3)
+
+            self.comparison_figure.suptitle(
+                f'Algorithm Comparison: {start} to {goal}',
+                fontsize=14,
+                fontweight='bold'
+            )
+            self.comparison_figure.tight_layout(rect=[0, 0, 1, 0.96])
+            self.comparison_canvas.draw()
+
+            # Update status
+            optimal_str = ", ".join(comparison.optimal_algorithms)
+            self.statusBar.showMessage(
+                f"Comparison complete. Optimal: {optimal_str} | "
+                f"Fastest: {comparison.fastest_algorithm} | "
+                f"Least Expanded: {comparison.least_expanded_algorithm}"
+            )
+
         except Exception as e:
-            QMessageBox.critical(self, "Comparison error", str(e))
-        finally:
-            self.statusBar().showMessage("Ready")
+            QMessageBox.critical(self, "Error", f"Comparison failed: {str(e)}")
+            self.statusBar.showMessage("Comparison failed")
 
-    # ----------------------- Visualization -----------------------
-
-    def draw_graph(self, path: Optional[List[str]] = None):
-        """Render the graph and (optionally) a path on the canvas."""
-        self.graph_figure.clear()
-        ax = self.graph_figure.add_subplot(111)
-        ax.set_title("NY State Graph")
-
+    def refresh_graph(self):
+        """Refresh the graph visualization"""
         if self.visualizer:
-            self.visualizer.draw_graph(ax=ax, highlight_path=path)
+            self.visualizer.figure = self.graph_figure
+            self.visualizer.ax = self.graph_figure.clear()
+            self.visualizer.ax = self.graph_figure.add_subplot(111)
+            self.visualizer.draw_graph(
+                show_weights=self.show_weights_checkbox.isChecked(),
+                title="New York State Route Network"
+            )
+            self.graph_canvas.draw()
 
-        self.graph_canvas.draw_idle()
+    def update_statistics(self):
+        """Update graph statistics display"""
+        if self.graph:
+            stats = get_graph_statistics(self.graph)
 
-    def append_log(self, text: str):
-        self.output_text.append(text)
+            self.stats_labels["total_cities"].setText(str(stats['total_cities']))
+            self.stats_labels["total_edges"].setText(str(stats['total_edges']))
+            self.stats_labels["avg_degree"].setText(f"{stats['average_degree']:.2f}")
+            self.stats_labels["total_miles"].setText(f"{stats['total_road_miles']:.1f}")
+            self.stats_labels["min_distance"].setText(f"{stats['min_distance']:.1f}")
+            self.stats_labels["max_distance"].setText(f"{stats['max_distance']:.1f}")
+            self.stats_labels["avg_distance"].setText(f"{stats['avg_distance']:.1f}")
 
-    # ----------------------- Menu / Actions (placeholder) -----------------------
+    def clear_results(self):
+        """Clear all results"""
+        self.results_text.clear()
+        self.comparison_table.setRowCount(0)
+        self.refresh_graph()
+        self.statusBar.showMessage("Results cleared")
 
-    def create_menus(self):
-        """If you later add menus, create them here."""
-        pass
+    def export_results(self):
+        """Export results to file"""
+        if not self.comparison_result:
+            QMessageBox.warning(self, "Warning", "No results to export")
+            return
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Export Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+        )
+
+        if filename:
+            try:
+                if filename.endswith('.json'):
+                    # Export as JSON
+                    data = {
+                        'start': self.comparison_result.start,
+                        'goal': self.comparison_result.goal,
+                        'results': [
+                            {
+                                'algorithm': r.algorithm_name,
+                                'path': r.path,
+                                'cost': r.cost,
+                                'nodes_expanded': r.nodes_expanded,
+                                'runtime': r.runtime,
+                                'optimal': r.is_optimal
+                            }
+                            for r in self.comparison_result.results
+                        ],
+                        'optimal_algorithms': self.comparison_result.optimal_algorithms,
+                        'fastest': self.comparison_result.fastest_algorithm,
+                        'least_expanded': self.comparison_result.least_expanded_algorithm
+                    }
+
+                    with open(filename, 'w') as f:
+                        json.dump(data, f, indent=2)
+
+                elif filename.endswith('.csv'):
+                    # Export as CSV
+                    import csv
+                    with open(filename, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow([
+                            'Algorithm', 'Path', 'Cost', 'Nodes Expanded',
+                            'Runtime (ms)', 'Optimal'
+                        ])
+                        for r in self.comparison_result.results:
+                            writer.writerow([
+                                r.algorithm_name,
+                                ' -> '.join(r.path),
+                                r.cost,
+                                r.nodes_expanded,
+                                r.runtime * 1000,
+                                r.is_optimal
+                            ])
+
+                QMessageBox.information(self, "Success", f"Results exported to {filename}")
+
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Export failed: {str(e)}")
+
+    def choose_export_path(self):
+        """Choose export directory"""
+        directory = QFileDialog.getExistingDirectory(self, "Choose Export Directory")
+        if directory:
+            self.export_path_label.setText(f"Export Path: {directory}")
+
+    def show_about(self):
+        """Show about dialog"""
+        QMessageBox.about(
+            self,
+            "About NY Route Planner",
+            "New York State Route Planner\n\n"
+            "A comprehensive route finding application implementing:\n"
+            "• DFS (Depth-First Search)\n"
+            "• BFS (Breadth-First Search)\n"
+            "• UCS (Uniform Cost Search)\n"
+            "• Greedy Best-First Search\n"
+            "• A* Search\n\n"
+            "CSCI Project 3 - Group 6\n"
+            "Version 1.0"
+        )
 
 
 def main():
@@ -432,12 +846,13 @@ def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')  # Modern look
 
+    # Set application icon if available
+    # app.setWindowIcon(QIcon('icon.png'))
+
     gui = RouteFinderGUI()
     gui.show()
 
-    # PyQt6 uses exec(), PyQt5 uses exec_()
-    exec_fn = getattr(app, 'exec', None) or app.exec_
-    sys.exit(exec_fn())
+    sys.exit(app.exec())
 
 
 if __name__ == '__main__':
