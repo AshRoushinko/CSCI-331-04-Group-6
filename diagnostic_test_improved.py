@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Diagnostic script to identify the 'str' object is not callable error
+Diagnostic script to identify issues with the route planner
 Run this from your project root: python3 diagnostic_test.py
 """
 
@@ -15,48 +15,97 @@ if str(ROOT) not in sys.path:
 print("=" * 60)
 print("DIAGNOSTIC TEST FOR ROUTE PLANNER")
 print("=" * 60)
+print(f"\nProject root: {ROOT}")
+print(f"Python path: {sys.path[:3]}...")
+
+# Test 0: Check project structure
+print("\n[TEST 0] Checking project structure...")
+required_files = [
+    "code/utilities/data_loader.py",
+    "code/utilities/route_planner.py",
+    "code/heartofitall/graph.py",
+    "code/heartofitall/search_results.py",
+    "code/algorithms/bfs.py",
+    "data/cities.csv",
+    "data/edges.csv"
+]
+
+missing_files = []
+for f in required_files:
+    path = ROOT / f
+    if path.exists():
+        print(f"  ✓ {f}")
+    else:
+        print(f"  ✗ {f} NOT FOUND")
+        missing_files.append(f)
+
+if missing_files:
+    print(f"\n✗ Missing {len(missing_files)} required files. Cannot continue.")
+    sys.exit(1)
 
 # Test 1: Import modules
 print("\n[TEST 1] Testing imports...")
 try:
-    from utilities.data_loader import load_graph, get_graph_statistics
+    from code.utilities.data_loader import load_graph, get_graph_statistics
 
     print("✓ data_loader imported successfully")
 except Exception as e:
     print(f"✗ data_loader import failed: {e}")
+    print("\nTrying to debug the import issue...")
+    print(f"Does code/__init__.py exist? {(ROOT / 'code' / '__init__.py').exists()}")
+    print(f"Does code/utilities/__init__.py exist? {(ROOT / 'code' / 'utilities' / '__init__.py').exists()}")
+
+    import traceback
+
+    traceback.print_exc()
     sys.exit(1)
 
 try:
-    from utilities.route_planner import RoutePlanner
+    from code.utilities.route_planner import RoutePlanner
 
     print("✓ RoutePlanner imported successfully")
 except Exception as e:
     print(f"✗ RoutePlanner import failed: {e}")
+    import traceback
+
+    traceback.print_exc()
     sys.exit(1)
 
 try:
-    from heartofitall.graph import Graph
+    from code.heartofitall.graph import Graph
 
     print("✓ Graph imported successfully")
 except Exception as e:
     print(f"✗ Graph import failed: {e}")
+    import traceback
+
+    traceback.print_exc()
+    sys.exit(1)
+
+try:
+    from code.heartofitall.search_results import SearchResult
+
+    print("✓ SearchResult imported successfully")
+except Exception as e:
+    print(f"✗ SearchResult import failed: {e}")
+    import traceback
+
+    traceback.print_exc()
     sys.exit(1)
 
 # Test 2: Load graph
 print("\n[TEST 2] Loading graph data...")
 try:
-    cities_file = Path("cities.csv")
-    edges_file = Path("edges.csv")
-
-    if not cities_file.exists():
-        print(f"✗ cities.csv not found at {cities_file.absolute()}")
-        sys.exit(1)
-    if not edges_file.exists():
-        print(f"✗ edges.csv not found at {edges_file.absolute()}")
-        sys.exit(1)
+    cities_file = ROOT / "cities.csv"
+    edges_file = ROOT / "edges.csv"
 
     graph = load_graph(cities_file, edges_file)
     print(f"✓ Graph loaded: {len(graph.cities)} cities, {len(graph.adjacency)} nodes")
+
+    # Show some cities
+    cities = list(graph.cities.keys())[:5]
+    print(f"  Sample cities: {', '.join(cities)}")
+
 except Exception as e:
     print(f"✗ Graph loading failed: {e}")
     import traceback
@@ -103,17 +152,27 @@ try:
 
     print(f"✓ Algorithm executed successfully")
     print(f"  Result type: {type(result)}")
-    print(f"  Result attributes: {dir(result)}")
 
     # Check expected attributes
-    expected_attrs = ['algorithm_name', 'path', 'cost', 'nodes_expanded', 'runtime', 'is_optimal']
+    expected_attrs = ['algorithm_name', 'start', 'goal', 'path', 'cost', 'nodes_expanded', 'runtime', 'is_optimal']
+    missing_attrs = []
     for attr in expected_attrs:
         has_it = hasattr(result, attr)
         symbol = "✓" if has_it else "✗"
         print(f"  {symbol} Has '{attr}': {has_it}")
         if has_it:
             value = getattr(result, attr)
-            print(f"      Value: {value} (type: {type(value).__name__})")
+            if attr in ['path']:
+                print(f"      Value: {value}")
+            else:
+                print(f"      Value: {value} (type: {type(value).__name__})")
+        else:
+            missing_attrs.append(attr)
+
+    if missing_attrs:
+        print(f"\n✗ Missing attributes: {missing_attrs}")
+        print("You need to update your SearchResult class and algorithm files!")
+        sys.exit(1)
 
 except Exception as e:
     print(f"✗ Algorithm execution failed: {e}")
@@ -127,6 +186,7 @@ except Exception as e:
         if not attr.startswith('_'):
             val = getattr(route_planner, attr)
             print(f"  {attr}: {type(val)}")
+    sys.exit(1)
 
 # Test 5: Test comparison
 print("\n[TEST 5] Testing algorithm comparison...")
@@ -138,21 +198,36 @@ try:
     )
     print(f"✓ Comparison executed successfully")
     print(f"  Result type: {type(comparison_result)}")
-    print(f"  Result attributes: {[a for a in dir(comparison_result) if not a.startswith('_')]}")
 
-    # Check for optimal_algorithms
-    if hasattr(comparison_result, 'optimal_algorithms'):
-        print(f"  ✓ Has 'optimal_algorithms': {comparison_result.optimal_algorithms}")
-    else:
-        print(f"  ✗ Missing 'optimal_algorithms' attribute")
-        print(f"  Available attributes: {vars(comparison_result)}")
+    # Check for required attributes
+    required_attrs = ['optimal_algorithms', 'fastest_algorithm', 'least_expanded_algorithm', 'results']
+    missing_attrs = []
+
+    for attr in required_attrs:
+        has_it = hasattr(comparison_result, attr)
+        symbol = "✓" if has_it else "✗"
+        if has_it:
+            val = getattr(comparison_result, attr)
+            print(f"  {symbol} Has '{attr}': {val}")
+        else:
+            print(f"  {symbol} Missing '{attr}'")
+            missing_attrs.append(attr)
+
+    if missing_attrs:
+        print(f"\n✗ Missing attributes in ComparisonResult: {missing_attrs}")
+        print("You need to update your route_planner.py!")
+        sys.exit(1)
 
 except Exception as e:
     print(f"✗ Comparison failed: {e}")
     import traceback
 
     traceback.print_exc()
+    sys.exit(1)
 
 print("\n" + "=" * 60)
-print("DIAGNOSTIC COMPLETE")
+print("✓✓✓ ALL TESTS PASSED ✓✓✓")
+print("=" * 60)
+print("\nYour route planner is ready! You can now run the GUI:")
+print("  python3 -m code.gui.gui_app")
 print("=" * 60)

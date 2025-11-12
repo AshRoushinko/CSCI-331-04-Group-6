@@ -12,7 +12,8 @@ import pickle
 # Import Graph with a safe fallback so the module works in both package and flat layouts
 try:
     from code.heartofitall.graph import Graph
-except Exception:  # pragma: no cover
+except (ImportError, ModuleNotFoundError):
+    # Fallback for when running as flat files
     from code.heartofitall.graph import Graph
 
 
