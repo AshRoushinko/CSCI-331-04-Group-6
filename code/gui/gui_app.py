@@ -4,10 +4,15 @@ A comprehensive PyQt6 interface for the route planning system
 """
 
 import sys
-import json
 from pathlib import Path
+import json
 from typing import Optional, List, Dict
 from datetime import datetime
+
+# Setup path to allow imports from project root
+ROOT = Path(__file__).resolve().parents[2]  # Go up to CSCI-331-04-Group-6
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -26,9 +31,19 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 import matplotlib.pyplot as plt
 
 # Import project modules
-from code.utilities.data_loader import load_graph, get_graph_statistics
-from code.utilities.visualizer import GraphVisualizer
-from code.heartofitall.graph import Graph
+try:
+    # Try package-style imports first (when run from project root)
+    from code.utilities.data_loader import load_graph, get_graph_statistics
+    from code.utilities.route_planner import RoutePlanner
+    from code.utilities.visualizer import GraphVisualizer
+    from code.heartofitall.graph import Graph
+except ModuleNotFoundError:
+    # Fall back to relative imports (when run directly from gui folder)
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from code.utilities.data_loader import load_graph, get_graph_statistics
+    from code.utilities.route_planner import RoutePlanner
+    from code.utilities.visualizer import GraphVisualizer
+    from code.heartofitall.graph import Graph
 
 
 class AlgorithmWorker(QThread):
@@ -543,47 +558,55 @@ class RouteFinderGUI(QMainWindow):
     def load_data(self):
         """Load graph data and initialize components"""
         try:
+            # Locate CSVs
+            here = Path(__file__).resolve()
+            project_root = None
+            for up in [here, *here.parents]:
+                if (up / "data" / "cities.csv").exists() and (up / "data" / "edges.csv").exists():
+                    project_root = up
+                    break
+            if project_root is None:
+                project_root = here.parents[1]
+
+            cities_csv = project_root / "data" / "cities.csv"
+            edges_csv = project_root / "data" / "edges.csv"
+
             # Load graph
-            self.graph = load_graph()
+            self.graph = load_graph(cities_csv, edges_csv)
 
-            # Initialize route planner
-            from code.heartofitall.route_planner import RoutePlanner
-
+            # Planner + visualizer
             self.route_planner = RoutePlanner(self.graph)
-
-            # Initialize visualizer
             self.visualizer = GraphVisualizer(self.graph, self.graph_figure)
 
             # Populate city combos
-            cities = sorted(self.graph.nodes.keys())
-            self.start_combo.addItems(cities)
-            self.goal_combo.addItems(cities)
-            self.comp_start_combo.addItems(cities)
-            self.comp_goal_combo.addItems(cities)
+            cities = sorted(self.graph.get_all_cities())
+            for cb in (self.start_combo, self.goal_combo, self.comp_start_combo, self.comp_goal_combo):
+                cb.clear()
+                cb.addItems(cities)
 
-            # Set default selections
-            if "Albany" in cities:
-                self.start_combo.setCurrentText("Albany")
-                self.comp_start_combo.setCurrentText("Albany")
+            # Sensible defaults
+            if "Rochester" in cities:
+                self.start_combo.setCurrentText("Rochester")
+                self.comp_start_combo.setCurrentText("Rochester")
             if "Buffalo" in cities:
                 self.goal_combo.setCurrentText("Buffalo")
                 self.comp_goal_combo.setCurrentText("Buffalo")
 
-            # Update statistics
+            # Update statistics panel
             self.update_statistics()
 
-            # Update city list
+            # City list with connection counts
+            self.city_list.clear()
             for city in cities:
-                connections = len(self.graph.nodes[city].neighbors)
+                connections = len(self.graph.get_neighbors(city))
                 self.city_list.addItem(f"{city} ({connections} connections)")
 
-            # Initial graph draw
+            # Draw the graph
             self.refresh_graph()
-
             self.statusBar.showMessage("Data loaded successfully")
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load data: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to load data: {e}")
             self.statusBar.showMessage("Failed to load data")
 
     def run_single_search(self):

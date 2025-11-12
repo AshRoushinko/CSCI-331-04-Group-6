@@ -1,18 +1,18 @@
 city_name,latitude ,longitude
 Rochester,43.1566,-77.6088
-Buffalo,42.8864,78.8784
+Buffalo,42.8864,-78.8784
 Syracuse,43.0481,-76.1474
 Albany,42.6526,-73.7562
 New York City,40.7128,-74.0060
 Ithaca,42.4440,-76.5019
 Binghamton,42.0987,-75.9180
-Niagara Falls,43.0962,-79.0377
+Niagara,43.0962,-79.0377
 Yonkers,40.9312,-73.8987
 Utica,43.1009,-75.2327
 Schenectady,42.8142,-73.9395
 Troy,42.7284,-73.6918
 Poughkeepsie,41.7004,-73.9209
-hite Plains,41.0340,-73.4529
+White Plains,41.0340,-73.4529
 Elmira,42.0898,-76.8077
 Kingston,41.9270,-73.9974
 Saratoga Springs,43.0831,-73.7846
@@ -25,3 +25,5 @@ Corning,42.1428,-77.0547
 Batavia,42.9981,-78.1875
 Oneonta,42.4529,-75.0638
 Newburgh,41.5034,-74.0104
+Watertown,43.974785,-75.910759
+Plattsburgh,44.6995,-73.4529

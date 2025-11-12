@@ -9,36 +9,34 @@ class UCS(SearchAlgorithm):
     def search(self) -> SearchResult:
         self._start_timer()
 
-        #initialization
-        frontier = PriorityQueue() # priority queue that orders nodes by their path cost
+        # Initialization
+        frontier = PriorityQueue()  # priority queue that orders nodes by their path cost
         frontier.push(self.start, 0.0)
 
-        came_from: Dict[str, str] = {} # tracks the parent of each node to reconstruct the path later
-        cost_so_far: Dict[str, float] = {self.start: 0.0} # stores the cheapest known cost to reach each node
-
-
+        came_from: Dict[str, str] = {}  # tracks the parent of each node to reconstruct the path later
+        cost_so_far: Dict[str, float] = {self.start: 0.0}  # stores the cheapest known cost to reach each node
 
         while not frontier.is_empty():
             current = frontier.pop()
             current_cost = cost_so_far[current]
 
-            # Goal test when a node is selected for expansion ( not when discovered )
+            # Goal test when a node is selected for expansion (not when discovered)
             if current == self.goal:
                 runtime = self._stop_timer()
                 path = self._reconstruct_path(came_from, current)
                 return SearchResult(
+                    algorithm_name="UCS",
+                    start=self.start,
+                    goal=self.goal,
                     path=path,
                     cost=current_cost,
                     nodes_expanded=self.nodes_expanded,
                     runtime=runtime,
-                    is_optimal=True,      # Non-negative road distances => optimal
-                    algorithm_name="UCS"
+                    is_optimal=True  # Non-negative road distances => optimal
                 )
 
-
-            # Expand current
-            # Pops the lowest-cost node
-            # Checks if it's the goal
+            # Expand current node
+            # Pops the lowest-cost node and checks neighbors
             self.nodes_expanded += 1
             for neighbor, edge_dist in self.graph.get_neighbors(current).items():
                 new_cost = current_cost + edge_dist
@@ -51,10 +49,12 @@ class UCS(SearchAlgorithm):
         # If we exhaust the frontier, goal is unreachable
         runtime = self._stop_timer()
         return SearchResult(
+            algorithm_name="UCS",
+            start=self.start,
+            goal=self.goal,
             path=[],
             cost=inf,
             nodes_expanded=self.nodes_expanded,
             runtime=runtime,
-            is_optimal=False,
-            algorithm_name="UCS"
+            is_optimal=False
         )

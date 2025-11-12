@@ -5,7 +5,7 @@ Provides visualization capabilities for the route planner
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import networkx as nx
 import numpy as np
@@ -17,14 +17,13 @@ from code.heartofitall.search_results import SearchResult
 
 
 class GraphVisualizer:
-    """Handles graph visualization using matplotlib and networkx"""
-
-    def __init__(self, graph: Graph):
+    def __init__(self, graph: Graph, figure: Optional["Figure"] = None):
         self.graph = graph
         self.G = self._create_networkx_graph()
-        self.pos = None
-        self.figure = None
-        self.ax = None
+        self.pos = {}
+        from matplotlib.figure import Figure
+        self.figure: Figure = figure or Figure(figsize=(10, 8))
+        self.ax = self.figure.add_subplot(111)
         self._setup_positions()
 
     def _create_networkx_graph(self) -> nx.Graph:

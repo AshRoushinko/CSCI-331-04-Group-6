@@ -115,3 +115,78 @@ CSCI-{331}-{04}-Group-{6}/
 
 
 
+class GraphVisualizer:
+    """Handles graph visualization using matplotlib and networkx"""
+
+    def __init__(self, graph: Graph):
+        self.graph = graph
+        self.G = self._create_networkx_graph()
+        self.pos = None
+        self.figure = None
+        self.ax = None
+        self._setup_positions()
+
+
+
+            def load_data(self):
+        """Load graph data and initialize components"""
+        try:
+            # Load graph
+
+            here = Path(__file__).resolve()
+            project_root = None
+            for up in [here, *here.parents]:
+                if (up / "data" / "cities.csv").exists() and (up / "data" / "edges.csv").exists():
+                    project_root = up
+                    break
+            if project_root is None:
+                # fallback if the GUI sits under code/gui/
+                project_root = here.parent.parent
+
+            cities_csv = project_root / "data" / "cities.csv"
+            edges_csv = project_root / "data" / "edges.csv"
+            self.graph = load_graph(cities_csv, edges_csv)
+
+            # Correct module and keep it resilient if you run files flat
+            try:
+                from code.utilities.route_planner import RoutePlanner
+            except Exception:
+                from code.utilities.route_planner import RoutePlanner
+            self.route_planner = RoutePlanner(self.graph)
+
+            # Initialize visualizer
+            self.visualizer = GraphVisualizer(self.graph, self.graph_figure)
+
+            # Populate city combos
+            cities = sorted(self.graph.get_all_cities())
+
+            self.start_combo.addItems(cities)
+            self.goal_combo.addItems(cities)
+            self.comp_start_combo.addItems(cities)
+            self.comp_goal_combo.addItems(cities)
+
+            # Set default selections
+            if "Albany" in cities:
+                self.start_combo.setCurrentText("Albany")
+                self.comp_start_combo.setCurrentText("Albany")
+            if "Buffalo" in cities:
+                self.goal_combo.setCurrentText("Buffalo")
+                self.comp_goal_combo.setCurrentText("Buffalo")
+
+            # Update statistics
+            self.update_statistics()
+
+            # Update city list
+            for city in cities:
+                connections = len(self.graph.get_neighbors(city))
+
+                self.city_list.addItem(f"{city} ({connections} connections)")
+
+            # Initial graph draw
+            self.refresh_graph()
+
+            self.statusBar.showMessage("Data loaded successfully")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load data: {str(e)}")
+            self.statusBar.showMessage("Failed to load data")

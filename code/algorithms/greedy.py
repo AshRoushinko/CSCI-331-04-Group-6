@@ -3,25 +3,21 @@ from code.heartofitall.search_results import SearchResult
 from code.heartofitall.priority_queue import PriorityQueue
 from code.utilities.heuristics import haversine_distance
 
+
 class GreedyBestFirst(SearchAlgorithm):
 
-    # heuristic function
-    # returns the estimated cost of reaching the goal from the current node
+    # Heuristic function
+    # Returns the estimated cost of reaching the goal from the current node
     # h(n) = distance from n to goal
     def _h(self, node: str) -> float:
         lat1, lon1 = self.graph.get_coordinates(node)
         lat2, lon2 = self.graph.get_coordinates(self.goal)
         return haversine_distance(lat1, lon1, lat2, lon2)
 
-    # Creates a priority queue ordered by heuristic values frontier
-    # frontier is a priority queue that orders nodes by their path cost
-    # came_from is a dictionary mapping each node to its parent
-    # current is the the goal node which will be used to backtrack
-    # builds path in reverse by following parenent pointer
-    # reverses the list to get the true path
-
     def search(self) -> SearchResult:
         self._start_timer()
+
+        # Creates a priority queue ordered by heuristic values
         frontier = PriorityQueue()
         frontier.push(self.start, self._h(self.start))
 
@@ -30,11 +26,21 @@ class GreedyBestFirst(SearchAlgorithm):
 
         while not frontier.is_empty():
             current = frontier.pop()
+
             if current == self.goal:
                 runtime = self._stop_timer()
                 path = self._reconstruct_path(came_from, current)
                 cost = sum(self.graph.get_distance(a, b) for a, b in zip(path, path[1:]))
-                return SearchResult(path, cost, self.nodes_expanded, runtime, False, "Greedy")
+                return SearchResult(
+                    algorithm_name="Greedy",
+                    start=self.start,
+                    goal=self.goal,
+                    path=path,
+                    cost=cost,
+                    nodes_expanded=self.nodes_expanded,
+                    runtime=runtime,
+                    is_optimal=False
+                )
 
             self.nodes_expanded += 1
             for nbr, _ in self.graph.get_neighbors(current).items():
@@ -44,4 +50,13 @@ class GreedyBestFirst(SearchAlgorithm):
                     frontier.push(nbr, self._h(nbr))
 
         runtime = self._stop_timer()
-        return SearchResult([], float("inf"), self.nodes_expanded, runtime, False, "Greedy")
+        return SearchResult(
+            algorithm_name="Greedy",
+            start=self.start,
+            goal=self.goal,
+            path=[],
+            cost=float("inf"),
+            nodes_expanded=self.nodes_expanded,
+            runtime=runtime,
+            is_optimal=False
+        )

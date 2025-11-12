@@ -1,168 +1,116 @@
+# data_loader.py
 """
-Data Loader Module
-Handles loading city and edge data from CSV files
+Data Loader Module (robust)
+Handles loading city and edge data from CSV files with flexible headers.
 """
-
+from __future__ import annotations
 import csv
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 import pickle
 
-from code.heartofitall.graph import Graph
+# Import Graph with a safe fallback so the module works in both package and flat layouts
+try:
+    from code.heartofitall.graph import Graph
+except Exception:  # pragma: no cover
+    from code.heartofitall.graph import Graph
 
 
-def load_graph(cities_file: Path, edges_file: Path,
-               cache_file: Optional[Path] = None) -> Graph:
+def _pick(mapping, *candidates):
+    for c in candidates:
+        if c in mapping and mapping[c] not in (None, ""):
+            return mapping[c]
+    return None
+
+
+def load_graph(cities_file: Path, edges_file: Path, cache_file: Optional[Path] = None) -> Graph:
     """
-    Load graph from CSV files
-
-    Args:
-        cities_file: Path to cities.csv
-        edges_file: Path to edges.csv
-        cache_file: Optional path to cache the loaded graph
-
-    Returns:
-        Graph object with cities and edges loaded
+    Accepts headers:
+      Cities:  city|city_name|name , latitude|lat , longitude|lon|lng
+      Edges:   city1|source|from , city2|target|to , distance|distance_miles|weight|miles
     """
-    # Try to load from cache if available
-    if cache_file and cache_file.exists():
+    if isinstance(cities_file, str):
+        cities_file = Path(cities_file)
+    if isinstance(edges_file, str):
+        edges_file = Path(edges_file)
+
+    # Optional cache
+    if cache_file and Path(cache_file).exists():
         try:
-            with open(cache_file, 'rb') as f:
+            with open(cache_file, "rb") as f:
                 return pickle.load(f)
-        except Exception as e:
-            print(f"Failed to load cache: {e}")
+        except Exception:
+            pass
 
-    graph = Graph()
+    g = Graph()
 
-    # Load cities
-    with open(cities_file, 'r') as f:
+    # --- Cities ---
+    with open(cities_file, "r", newline="") as f:
         reader = csv.DictReader(f)
-        for row in reader:
-            graph.add_city(
-                name=row['city'].strip(),
-                lat=float(row['latitude']),
-                lon=float(row['longitude'])
-            )
+        for raw in reader:
+            row = {(k or "").strip().lower(): (v or "").strip() for k, v in raw.items()}
+            name = _pick(row, "city", "city_name", "name", "node", "id")
+            lat = _pick(row, "latitude", "lat", "y")
+            lon = _pick(row, "longitude", "lon", "lng", "x")
+            if name is None or lat is None or lon is None:
+                raise KeyError("City CSV must contain 'city'/'latitude'/'longitude' (or synonyms). "
+                               f"Got headers: {list(row.keys())}")
+            g.add_city(name=name, lat=float(lat), lon=float(lon))
 
-    # Load edges
-    with open(edges_file, 'r') as f:
+    # --- Edges ---
+    with open(edges_file, "r", newline="") as f:
         reader = csv.DictReader(f)
-        for row in reader:
-            graph.add_edge(
-                a=row['city1'].strip(),
-                b=row['city2'].strip(),
-                distance=float(row['distance']),
-                bidirectional=True  # Assume all roads are bidirectional
-            )
+        for raw in reader:
+            row = {(k or "").strip().lower(): (v or "").strip() for k, v in raw.items()}
+            a = _pick(row, "city1", "source", "from", "city_a", "a", "source_city")
+            b = _pick(row, "city2", "target", "to", "city_b", "b", "dest_city", "destination_city")
+            dist = _pick(row, "distance", "weight", "w", "distance_miles", "miles", "length")
+            if a is None or b is None or dist is None:
+                raise KeyError("Edges CSV must contain 'city1'/'city2'/'distance' (or synonyms). "
+                               f"Got headers: {list(row.keys())}")
+            g.add_edge(a=a, b=b, distance=float(dist), bidirectional=True)
 
-    # Cache the graph if cache_file is provided
+    # Save cache if requested
     if cache_file:
         try:
-            cache_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(cache_file, 'wb') as f:
-                pickle.dump(graph, f)
-        except Exception as e:
-            print(f"Failed to save cache: {e}")
+            with open(cache_file, "wb") as f:
+                pickle.dump(g, f)
+        except Exception:
+            pass
 
-    return graph
+    return g
 
 
-def validate_graph_data(graph: Graph) -> dict:
-    """
-    Validate the loaded graph data
+def get_graph_statistics(graph: Graph) -> Dict[str, Any]:
+    """Return the fields the GUI expects."""
+    total_cities = len(graph.cities)
+    undirected_edges = set()
+    distances = []
+    total_road_miles = 0.0
+    for a, neighbors in graph.adjacency.items():
+        for b, d in neighbors.items():
+            key = tuple(sorted((a, b)))
+            if key in undirected_edges:
+                continue
+            undirected_edges.add(key)
+            total_road_miles += d
+            distances.append(d)
 
-    Returns:
-        Dictionary with validation results
-    """
-    results = {
-        'city_count': len(graph.cities),
-        'edge_count': sum(len(neighbors) for neighbors in graph.adjacency.values()) // 2,
-        'connected_components': 0,
-        'isolated_cities': [],
-        'missing_coordinates': [],
-        'invalid_edges': []
+    total_edges = len(undirected_edges)
+    average_degree = (2 * total_edges / total_cities) if total_cities else 0.0
+    if distances:
+        min_distance = min(distances)
+        max_distance = max(distances)
+        avg_distance = sum(distances) / len(distances)
+    else:
+        min_distance = max_distance = avg_distance = 0.0
+
+    return {
+        "total_cities": total_cities,
+        "total_edges": total_edges,
+        "average_degree": average_degree,
+        "total_road_miles": total_road_miles,
+        "min_distance": min_distance,
+        "max_distance": max_distance,
+        "avg_distance": avg_distance,
     }
-
-    # Check for isolated cities (no edges)
-    for city in graph.cities:
-        if city not in graph.adjacency or not graph.adjacency[city]:
-            results['isolated_cities'].append(city)
-
-    # Check for missing coordinates
-    for city_name, city in graph.cities.items():
-        if city.latitude == 0 and city.longitude == 0:
-            results['missing_coordinates'].append(city_name)
-
-    # Validate edges (ensure both cities exist)
-    for city_a, neighbors in graph.adjacency.items():
-        if city_a not in graph.cities:
-            results['invalid_edges'].append(f"{city_a} not in cities list")
-        for city_b in neighbors:
-            if city_b not in graph.cities:
-                results['invalid_edges'].append(f"{city_b} not in cities list")
-
-    return results
-
-
-def get_graph_statistics(graph: Graph) -> dict:
-    """
-    Get statistics about the graph
-
-    Returns:
-        Dictionary with graph statistics
-    """
-    all_distances = []
-    for city_a, neighbors in graph.adjacency.items():
-        for city_b, distance in neighbors.items():
-            if city_a < city_b:  # Avoid counting edges twice
-                all_distances.append(distance)
-
-    stats = {
-        'total_cities': len(graph.cities),
-        'total_edges': len(all_distances),
-        'average_degree': sum(len(neighbors) for neighbors in graph.adjacency.values()) / len(
-            graph.cities) if graph.cities else 0,
-        'min_distance': min(all_distances) if all_distances else 0,
-        'max_distance': max(all_distances) if all_distances else 0,
-        'avg_distance': sum(all_distances) / len(all_distances) if all_distances else 0,
-        'total_road_miles': sum(all_distances)
-    }
-
-    return stats
-
-
-def export_graph_to_csv(graph: Graph, cities_output: Path, edges_output: Path):
-    """
-    Export graph back to CSV format
-
-    Args:
-        graph: Graph object to export
-        cities_output: Path for cities CSV output
-        edges_output: Path for edges CSV output
-    """
-    # Export cities
-    with open(cities_output, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['city', 'latitude', 'longitude'])
-        writer.writeheader()
-        for city_name, city in graph.cities.items():
-            writer.writerow({
-                'city': city_name,
-                'latitude': city.latitude,
-                'longitude': city.longitude
-            })
-
-    # Export edges (avoid duplicates)
-    exported = set()
-    with open(edges_output, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['city1', 'city2', 'distance'])
-        writer.writeheader()
-        for city_a, neighbors in graph.adjacency.items():
-            for city_b, distance in neighbors.items():
-                edge = tuple(sorted([city_a, city_b]))
-                if edge not in exported:
-                    writer.writerow({
-                        'city1': city_a,
-                        'city2': city_b,
-                        'distance': distance
-                    })
-                    exported.add(edge)

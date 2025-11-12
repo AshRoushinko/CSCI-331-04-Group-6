@@ -4,16 +4,16 @@ from code.heartofitall.search_results import SearchResult
 from code.heartofitall.priority_queue import PriorityQueue
 from code.utilities.heuristics import haversine_distance
 
+
 class AStar(SearchAlgorithm):
 
-    # heuristic function
-    # returns the estimated cost of reaching the goal from the current node
+    # Heuristic function
+    # Returns the estimated cost of reaching the goal from the current node
     # h(n) = distance from n to goal
     def _h(self, a: str, b: str) -> float:
         lat1, lon1 = self.graph.get_coordinates(a)
         lat2, lon2 = self.graph.get_coordinates(b)
         return haversine_distance(lat1, lon1, lat2, lon2)
-
 
     def search(self) -> SearchResult:
         self._start_timer()
@@ -26,10 +26,20 @@ class AStar(SearchAlgorithm):
 
         while not frontier.is_empty():
             current = frontier.pop()
+
             if current == self.goal:
                 runtime = self._stop_timer()
                 path = self._reconstruct_path(came_from, current)
-                return SearchResult(path, g[current], self.nodes_expanded, runtime, True, "A*")
+                return SearchResult(
+                    algorithm_name="A*",
+                    start=self.start,
+                    goal=self.goal,
+                    path=path,
+                    cost=g[current],
+                    nodes_expanded=self.nodes_expanded,
+                    runtime=runtime,
+                    is_optimal=True
+                )
 
             self.nodes_expanded += 1
             for nbr, w in self.graph.get_neighbors(current).items():
@@ -41,4 +51,13 @@ class AStar(SearchAlgorithm):
                     frontier.push(nbr, f)
 
         runtime = self._stop_timer()
-        return SearchResult([], float("inf"), self.nodes_expanded, runtime, False, "A*")
+        return SearchResult(
+            algorithm_name="A*",
+            start=self.start,
+            goal=self.goal,
+            path=[],
+            cost=float("inf"),
+            nodes_expanded=self.nodes_expanded,
+            runtime=runtime,
+            is_optimal=False
+        )
