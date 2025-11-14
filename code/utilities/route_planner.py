@@ -38,6 +38,40 @@ ALGO_REGISTRY: Dict[str, Callable[[Graph, str, str], "SearchAlgorithm"]] = {
     # "IDA*": IDAStar,  # add when implemented
 }
 
+# Mapping for full display names to short names
+ALGO_NAME_MAPPING = {
+    "DFS (Depth-First Search)": "DFS",
+    "BFS (Breadth-First Search)": "BFS",
+    "UCS (Uniform Cost Search)": "UCS",
+    "Greedy Best-First Search": "Greedy",
+    "A* Search": "A*",
+    "A*": "A*",
+    "Greedy": "Greedy",
+    "DFS": "DFS",
+    "BFS": "BFS",
+    "UCS": "UCS",
+}
+
+
+def normalize_algorithm_name(name: str) -> str:
+    """
+    Normalize algorithm name to match registry keys.
+    Handles both short names (DFS) and full display names (DFS (Depth-First Search)).
+    """
+    # Try direct lookup in mapping
+    if name in ALGO_NAME_MAPPING:
+        return ALGO_NAME_MAPPING[name]
+
+    # Try extracting short name from parenthetical format
+    # e.g., "DFS (Depth-First Search)" -> "DFS"
+    if "(" in name:
+        short_name = name.split("(")[0].strip()
+        if short_name in ALGO_REGISTRY:
+            return short_name
+
+    # Return as-is if no mapping found
+    return name
+
 
 @dataclass
 class ComparisonResult:
@@ -95,14 +129,17 @@ class RoutePlanner:
 
     def run_single_algorithm(self, algorithm_name: str, start: str, goal: str) -> SearchResult:
         """Run a single algorithm and return its SearchResult."""
-        if algorithm_name not in ALGO_REGISTRY:
-            raise ValueError(f"Unknown algorithm: {algorithm_name}")
+        # Normalize the algorithm name to handle different formats
+        normalized_name = normalize_algorithm_name(algorithm_name)
 
-        algo_cls = ALGO_REGISTRY[algorithm_name]
+        if normalized_name not in ALGO_REGISTRY:
+            raise ValueError(f"Unknown algorithm: {algorithm_name} (normalized to: {normalized_name})")
+
+        algo_cls = ALGO_REGISTRY[normalized_name]
         result = algo_cls(self.graph, start, goal).search()
 
         # Conservative optimality annotation for the GUI
-        if algorithm_name in ("UCS", "A*"):
+        if normalized_name in ("UCS", "A*"):
             result.is_optimal = True  # positive weights + admissible heuristic
         else:
             result.is_optimal = False
@@ -114,7 +151,10 @@ class RoutePlanner:
         Run multiple algorithms and return a ComparisonResult object.
         If `parallel` is True, algorithms are executed in a small thread pool.
         """
-        to_run = [a for a in algorithms if a in ALGO_REGISTRY]
+        # Normalize algorithm names before checking registry
+        normalized_algos = [normalize_algorithm_name(a) for a in algorithms]
+        to_run = [a for a in normalized_algos if a in ALGO_REGISTRY]
+
         if not to_run:
             raise ValueError("No valid algorithms selected.")
 

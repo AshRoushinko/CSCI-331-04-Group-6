@@ -37,6 +37,12 @@ try:
     from code.utilities.route_planner import RoutePlanner
     from code.utilities.visualizer import GraphVisualizer
     from code.heartofitall.graph import Graph
+    # Import algorithm classes directly for testing
+    from code.algorithms.dfs import DFS
+    from code.algorithms.bfs import BFS
+    from code.algorithms.ucs import UCS
+    from code.algorithms.greedy import GreedyBestFirst
+    from code.algorithms.astar import AStar
 except ModuleNotFoundError:
     # Fall back to relative imports (when run directly from gui folder)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -44,6 +50,12 @@ except ModuleNotFoundError:
     from code.utilities.route_planner import RoutePlanner
     from code.utilities.visualizer import GraphVisualizer
     from code.heartofitall.graph import Graph
+    # Import algorithm classes directly for testing
+    from code.algorithms.dfs import DFS
+    from code.algorithms.bfs import BFS
+    from code.algorithms.ucs import UCS
+    from code.algorithms.greedy import GreedyBestFirst
+    from code.algorithms.astar import AStar
 
 
 class AlgorithmWorker(QThread):
@@ -53,23 +65,36 @@ class AlgorithmWorker(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, route_planner, algorithm, start_city, goal_city):
+    def __init__(self, graph, algorithm_class, algorithm_name, start_city, goal_city):
         super().__init__()
-        self.route_planner = route_planner
-        self.algorithm = algorithm
-        self.start_city = start_city  # Changed from self.start to avoid collision with QThread.start()!
+        self.graph = graph
+        self.algorithm_class = algorithm_class  # Actual algorithm class (e.g., DFS)
+        self.algorithm_name = algorithm_name    # Name for display (e.g., "DFS")
+        self.start_city = start_city  # Changed from self.start to avoid collision!
         self.goal_city = goal_city    # Changed from self.goal for consistency
 
     def run(self):
         try:
-            self.progress.emit(f"Running {self.algorithm}...")
-            result = self.route_planner.run_single_algorithm(
-                self.algorithm, self.start_city, self.goal_city
-            )
+            # Debug: Print what we're trying to run
+            print(f"[DEBUG] AlgorithmWorker running: algorithm_class={self.algorithm_class}")
+            print(f"[DEBUG] Algorithm name: {self.algorithm_name}")
+            print(f"[DEBUG] Start: {self.start_city}, Goal: {self.goal_city}")
+            print(f"[DEBUG] Type of algorithm_class: {type(self.algorithm_class)}")
+
+            self.progress.emit(f"Running {self.algorithm_name}...")
+
+            # Directly instantiate and run the algorithm
+            algorithm_instance = self.algorithm_class(self.graph, self.start_city, self.goal_city)
+            print(f"[DEBUG] Created instance: {algorithm_instance}")
+
+            result = algorithm_instance.search()
+            print(f"[DEBUG] Search completed successfully")
+
             self.result.emit(result)
         except Exception as e:
             import traceback
-            error_msg = f"Error in {self.algorithm}: {str(e)}\n{traceback.format_exc()}"
+            error_msg = f"Error in {self.algorithm_name}: {str(e)}\n{traceback.format_exc()}"
+            print(f"[DEBUG] Error occurred: {error_msg}")
             self.error.emit(error_msg)
         finally:
             self.finished.emit()
@@ -255,27 +280,17 @@ class RouteFinderGUI(QMainWindow):
         algo_group = QGroupBox("Algorithm Selection")
         algo_layout = QVBoxLayout()
 
+        # NOTE: TESTING MODE - Dropdown is ignored, DFS is hardcoded in run_single_search()
         self.algo_combo = QComboBox()
-        # Comprehensive mapping from display names to algorithm keys
         self._ALGO_LABEL_TO_KEY = {
             "DFS (Depth-First Search)": "DFS",
             "BFS (Breadth-First Search)": "BFS",
             "UCS (Uniform Cost Search)": "UCS",
-            "Greedy Best-First Search": "Greedy",
-            "Greedy Best-First": "Greedy",  # Alternative format
+            "Greedy Best-First": "Greedy",
             "A* Search": "A*",
-            "A*": "A*",  # Short format
         }
 
-        # Display names for dropdown
-        display_names = [
-            "DFS (Depth-First Search)",
-            "BFS (Breadth-First Search)",
-            "UCS (Uniform Cost Search)",
-            "Greedy Best-First Search",
-            "A* Search"
-        ]
-        self.algo_combo.addItems(display_names)
+        self.algo_combo.addItems(list(self._ALGO_LABEL_TO_KEY.keys()))
 
         algo_layout.addWidget(self.algo_combo)
 
@@ -626,7 +641,19 @@ class RouteFinderGUI(QMainWindow):
             self.statusBar.showMessage("Failed to load data")
 
     def run_single_search(self):
-        """Run a single algorithm search"""
+        """Run a single algorithm search - HARDCODED TO DFS FOR TESTING"""
+
+        # FIRST: Check if self.worker already exists and what it is
+        print(f"\n[DEBUG] === INITIAL STATE CHECK ===")
+        if hasattr(self, 'worker'):
+            print(f"[DEBUG] self.worker already exists!")
+            print(f"[DEBUG] Existing self.worker = {self.worker}")
+            print(f"[DEBUG] Existing self.worker type = {type(self.worker)}")
+            print(f"[DEBUG] Is existing self.worker a string? {isinstance(self.worker, str)}")
+        else:
+            print(f"[DEBUG] self.worker does not exist yet")
+        print(f"[DEBUG] === END INITIAL CHECK ===\n")
+
         start = self.start_combo.currentText()
         goal = self.goal_combo.currentText()
 
@@ -634,38 +661,86 @@ class RouteFinderGUI(QMainWindow):
             QMessageBox.warning(self, "Warning", "Please select start and goal cities")
             return
 
-        # Get algorithm name from dropdown
-        algo_label = self.algo_combo.currentText()
+        # ===== TESTING MODE: HARDCODED TO DFS =====
+        # Ignore the dropdown for now and always use DFS
+        algorithm_class = DFS
+        algorithm_name = "DFS (Testing Mode)"
 
-        # Convert display name to short key with robust fallback
-        algorithm = self._ALGO_LABEL_TO_KEY.get(algo_label)
-
-        if algorithm is None:
-            # Fallback: extract short name from "NAME (Description)" format
-            if "(" in algo_label:
-                algorithm = algo_label.split("(")[0].strip()
-            else:
-                algorithm = algo_label.split()[0]
-
-        # Validate that we have a valid algorithm
-        if not algorithm:
-            QMessageBox.warning(self, "Warning", f"Invalid algorithm selected: {algo_label}")
-            return
+        print(f"\n{'='*60}")
+        print(f"[DEBUG] Starting search with hardcoded algorithm")
+        print(f"[DEBUG] Algorithm class: {algorithm_class}")
+        print(f"[DEBUG] Algorithm class type: {type(algorithm_class)}")
+        print(f"[DEBUG] Is algorithm_class a string? {isinstance(algorithm_class, str)}")
+        print(f"[DEBUG] Algorithm name: {algorithm_name}")
+        print(f"[DEBUG] Start: {start}, Goal: {goal}")
+        print(f"[DEBUG] Graph object: {self.graph}")
+        print(f"[DEBUG] Graph type: {type(self.graph)}")
+        print(f"{'='*60}\n")
+        # ===========================================
 
         try:
-            self.statusBar.showMessage(f"Running {algorithm}...")
+            self.statusBar.showMessage(f"Running {algorithm_name}...")
 
-            # Create worker thread
-            self.worker = AlgorithmWorker(self.route_planner, algorithm, start, goal)
+            # CRITICAL DEBUG: Check types BEFORE creating worker
+            print(f"[DEBUG] About to create AlgorithmWorker...")
+            print(f"[DEBUG] AlgorithmWorker class: {AlgorithmWorker}")
+            print(f"[DEBUG] AlgorithmWorker type: {type(AlgorithmWorker)}")
+            print(f"[DEBUG] Is AlgorithmWorker a string? {isinstance(AlgorithmWorker, str)}")
+
+            # Create worker thread with algorithm CLASS, not string
+            # Using start_city and goal_city to avoid collision with QThread.start()
+            worker_result = AlgorithmWorker(
+                self.graph,          # Pass graph directly
+                algorithm_class,     # Pass DFS class
+                algorithm_name,      # Pass name for display
+                start,               # start_city parameter
+                goal                 # goal_city parameter
+            )
+
+            # CRITICAL DEBUG: Check what we got back
+            print(f"\n[DEBUG] Worker created!")
+            print(f"[DEBUG] worker_result = {worker_result}")
+            print(f"[DEBUG] worker_result type = {type(worker_result)}")
+            print(f"[DEBUG] Is worker_result a string? {isinstance(worker_result, str)}")
+            print(f"[DEBUG] worker_result has 'start' method? {hasattr(worker_result, 'start')}")
+            if hasattr(worker_result, 'start'):
+                print(f"[DEBUG] worker_result.start = {worker_result.start}")
+                print(f"[DEBUG] worker_result.start type = {type(worker_result.start)}")
+                print(f"[DEBUG] Is worker_result.start a string? {isinstance(worker_result.start, str)}")
+
+            # Now assign to self.worker
+            self.worker = worker_result
+
+            print(f"\n[DEBUG] After assignment:")
+            print(f"[DEBUG] self.worker = {self.worker}")
+            print(f"[DEBUG] self.worker type = {type(self.worker)}")
+            print(f"[DEBUG] Is self.worker a string? {isinstance(self.worker, str)}")
+            print(f"[DEBUG] self.worker.start = {self.worker.start}")
+            print(f"[DEBUG] self.worker.start type = {type(self.worker.start)}")
+            print(f"[DEBUG] Is self.worker.start a string? {isinstance(self.worker.start, str)}")
+
+            # Connect signals
+            print(f"\n[DEBUG] Connecting signals...")
             self.worker.progress.connect(self.statusBar.showMessage)
             self.worker.result.connect(self.display_result)
             self.worker.error.connect(lambda msg: QMessageBox.critical(self, "Error", msg))
             self.worker.finished.connect(lambda: self.statusBar.showMessage("Search complete"))
+            print(f"[DEBUG] Signals connected successfully")
+
+            # Check one more time before starting
+            print(f"\n[DEBUG] Final check before start():")
+            print(f"[DEBUG] self.worker.start callable? {callable(self.worker.start)}")
+            print(f"[DEBUG] About to call self.worker.start()...")
+
             self.worker.start()
+
+            print(f"[DEBUG] self.worker.start() called successfully!")
 
         except Exception as e:
             import traceback
             error_msg = f"Search failed: {str(e)}\n{traceback.format_exc()}"
+            print(f"\n[DEBUG] Exception in run_single_search:")
+            print(error_msg)
             QMessageBox.critical(self, "Error", error_msg)
 
     def display_result(self, result):
@@ -685,6 +760,7 @@ class RouteFinderGUI(QMainWindow):
         self.results_text.append(result_text)
 
         # Update visualization - simplified approach without draw_search_result
+        # Just refresh the graph with the path information shown in a different way
         if self.visualizer:
             try:
                 # Clear and redraw the graph
@@ -703,12 +779,10 @@ class RouteFinderGUI(QMainWindow):
                     # Get positions of cities in the path
                     path_positions = []
                     for city in result.path:
-                        if city in self.graph.cities:
-                            city_obj = self.graph.cities[city]
-                            if hasattr(city_obj, 'latitude') and hasattr(city_obj, 'longitude'):
-                                lon = city_obj.longitude
-                                lat = city_obj.latitude
-                                path_positions.append((lon, lat))
+                        if hasattr(self.graph.cities[city], 'latitude') and hasattr(self.graph.cities[city], 'longitude'):
+                            lon = self.graph.cities[city].longitude
+                            lat = self.graph.cities[city].latitude
+                            path_positions.append((lon, lat))
 
                     # Draw the path as a thick red line
                     if len(path_positions) >= 2:
