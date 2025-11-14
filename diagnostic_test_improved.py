@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Diagnostic script to identify issues with the route planner
-Run this from your project root: python3 diagnostic_test.py
+Run this from your project root: python3 diagnostic_test_improved.py
 """
 
 import sys
@@ -26,9 +26,26 @@ required_files = [
     "code/heartofitall/graph.py",
     "code/heartofitall/search_results.py",
     "code/algorithms/bfs.py",
-    "data/cities.csv",
-    "data/edges.csv"
 ]
+
+# Check for CSV files in multiple possible locations
+csv_locations = [
+    ("data/cities.csv", "data/edges.csv"),
+    ("cities.csv", "edges.csv"),
+]
+
+cities_file = None
+edges_file = None
+
+for cities_path, edges_path in csv_locations:
+    cities_full = ROOT / cities_path
+    edges_full = ROOT / edges_path
+    if cities_full.exists() and edges_full.exists():
+        cities_file = cities_full
+        edges_file = edges_full
+        required_files.append(cities_path)
+        required_files.append(edges_path)
+        break
 
 missing_files = []
 for f in required_files:
@@ -38,6 +55,17 @@ for f in required_files:
     else:
         print(f"  ✗ {f} NOT FOUND")
         missing_files.append(f)
+
+if cities_file is None or edges_file is None:
+    print(f"\n✗ Could not find cities.csv and edges.csv")
+    print(f"  Checked locations:")
+    for cities_path, edges_path in csv_locations:
+        print(f"    - {cities_path} and {edges_path}")
+    sys.exit(1)
+
+print(f"\n  Using CSV files:")
+print(f"    Cities: {cities_file.relative_to(ROOT)}")
+print(f"    Edges:  {edges_file.relative_to(ROOT)}")
 
 if missing_files:
     print(f"\n✗ Missing {len(missing_files)} required files. Cannot continue.")
@@ -96,9 +124,6 @@ except Exception as e:
 # Test 2: Load graph
 print("\n[TEST 2] Loading graph data...")
 try:
-    cities_file = ROOT / "cities.csv"
-    edges_file = ROOT / "edges.csv"
-
     graph = load_graph(cities_file, edges_file)
     print(f"✓ Graph loaded: {len(graph.cities)} cities, {len(graph.adjacency)} nodes")
 

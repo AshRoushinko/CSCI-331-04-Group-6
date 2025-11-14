@@ -254,13 +254,16 @@ class RouteFinderGUI(QMainWindow):
         algo_layout = QVBoxLayout()
 
         self.algo_combo = QComboBox()
-        self.algo_combo.addItems([
-            "DFS (Depth-First Search)",
-            "BFS (Breadth-First Search)",
-            "UCS (Uniform Cost Search)",
-            "Greedy Best-First",
-            "A* Search"
-        ])
+        self._ALGO_LABEL_TO_KEY = {
+            "DFS (Depth-First Search)": "DFS",
+            "BFS (Breadth-First Search)": "BFS",
+            "UCS (Uniform Cost Search)": "UCS",
+            "Greedy Best-First": "Greedy",
+            "A* Search": "A*",
+        }
+
+        self.algo_combo.addItems(list(self._ALGO_LABEL_TO_KEY.keys()))
+
         algo_layout.addWidget(self.algo_combo)
 
         self.heuristic_checkbox = QCheckBox("Use Manhattan Heuristic")
@@ -613,7 +616,10 @@ class RouteFinderGUI(QMainWindow):
         """Run a single algorithm search"""
         start = self.start_combo.currentText()
         goal = self.goal_combo.currentText()
-        algorithm = self.algo_combo.currentText().split()[0]  # Get algorithm abbreviation
+
+        algo_label = self.algo_combo.currentText()
+        algorithm = self._ALGO_LABEL_TO_KEY.get(algo_label, algo_label.split()[0])
+
 
         if not start or not goal:
             QMessageBox.warning(self, "Warning", "Please select start and goal cities")
