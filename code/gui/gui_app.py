@@ -86,6 +86,11 @@ class RouteFinderGUI(QMainWindow):
         self.current_results = []
         self.comparison_result = None
 
+        # Animation state
+        self.animation_timer = None
+        self.animation_step = 0
+        self.animation_result = None
+
         self.initUI()
         self.load_data()
 
@@ -303,6 +308,11 @@ class RouteFinderGUI(QMainWindow):
 
         self.animation_checkbox = QCheckBox("Animate Search")
         viz_layout.addWidget(self.animation_checkbox)
+
+        self.hide_non_route_checkbox = QCheckBox("Hide Non-Route Nodes")
+        self.hide_non_route_checkbox.setChecked(False)
+        self.hide_non_route_checkbox.stateChanged.connect(self.update_node_visibility)
+        viz_layout.addWidget(self.hide_non_route_checkbox)
 
         viz_group.setLayout(viz_layout)
         left_layout.addWidget(viz_group)
@@ -684,6 +694,182 @@ class RouteFinderGUI(QMainWindow):
 
         self.results_text.append(result_text)
 
+        # Check if animation is enabled
+        if self.animation_checkbox.isChecked() and result.path and len(result.path) > 1:
+            self.start_animation(result)
+        else:
+            self.draw_static_result(result)
+
+    def start_animation(self, result):
+        """Start the route animation"""
+        # Stop any existing animation
+        if self.animation_timer:
+            self.animation_timer.stop()
+
+        # Initialize animation state
+        self.animation_step = 0
+        self.animation_result = result
+
+        # Create and start timer (500ms per step)
+        self.animation_timer = QTimer()
+        self.animation_timer.timeout.connect(self.animate_step)
+        self.animation_timer.start(500)  # 500ms delay between steps
+
+        # Draw initial state (just the base graph or first node)
+        self.animate_step()
+
+    def animate_step(self):
+        """Draw one step of the animation"""
+        if not self.animation_result:
+            return
+
+        result = self.animation_result
+
+        # Check if animation is complete
+        if self.animation_step >= len(result.path):
+            if self.animation_timer:
+                self.animation_timer.stop()
+            self.statusBar.showMessage("Animation complete")
+            return
+
+        # Draw the partial route up to current step
+        self.draw_partial_route(result, self.animation_step + 1)
+
+        # Update status
+        current_city = result.path[self.animation_step]
+        self.statusBar.showMessage(f"Animation step {self.animation_step + 1}/{len(result.path)}: {current_city}")
+
+        # Increment step
+        self.animation_step += 1
+
+    def draw_partial_route(self, result, num_steps):
+        """Draw the route up to a certain number of steps"""
+        if not self.visualizer:
+            return
+
+        try:
+            # Clear and redraw the graph
+            self.visualizer.figure = self.graph_figure
+            self.visualizer.ax = self.graph_figure.clear()
+            self.visualizer.ax = self.graph_figure.add_subplot(111)
+
+            # Get the partial path
+            partial_path = result.path[:num_steps]
+            hide_non_route = self.hide_non_route_checkbox.isChecked()
+
+            if hide_non_route:
+                # Draw only nodes in the partial path
+                route_set = set(partial_path)
+
+                # Draw edges between consecutive nodes in partial path
+                for i in range(len(partial_path) - 1):
+                    city1 = partial_path[i]
+                    city2 = partial_path[i + 1]
+
+                    if city1 in self.graph.cities and city2 in self.graph.cities:
+                        city_obj1 = self.graph.cities[city1]
+                        city_obj2 = self.graph.cities[city2]
+
+                        if (hasattr(city_obj1, 'latitude') and hasattr(city_obj1, 'longitude') and
+                            hasattr(city_obj2, 'latitude') and hasattr(city_obj2, 'longitude')):
+
+                            lon1, lat1 = city_obj1.longitude, city_obj1.latitude
+                            lon2, lat2 = city_obj2.longitude, city_obj2.latitude
+
+                            # Draw edge with animation effect (thicker for latest edge)
+                            if i == len(partial_path) - 2:
+                                self.visualizer.ax.plot([lon1, lon2], [lat1, lat2],
+                                                       'orange', linewidth=3, alpha=0.8, zorder=3)
+                            else:
+                                self.visualizer.ax.plot([lon1, lon2], [lat1, lat2],
+                                                       'gray', linewidth=1, alpha=0.5, zorder=1)
+
+                # Draw nodes in partial path
+                for idx, city in enumerate(partial_path):
+                    if city in self.graph.cities:
+                        city_obj = self.graph.cities[city]
+                        if hasattr(city_obj, 'latitude') and hasattr(city_obj, 'longitude'):
+                            lon = city_obj.longitude
+                            lat = city_obj.latitude
+
+                            # Color coding
+                            if city == result.start:
+                                self.visualizer.ax.plot(lon, lat, 'go', markersize=12, zorder=6)
+                            elif city == result.goal and idx == len(partial_path) - 1:
+                                # Only show goal if we've reached it
+                                self.visualizer.ax.plot(lon, lat, 'bs', markersize=12, zorder=6)
+                            elif idx == len(partial_path) - 1:
+                                # Highlight the current node being added
+                                self.visualizer.ax.plot(lon, lat, 'yo', markersize=10, zorder=5,
+                                                       markeredgecolor='orange', markeredgewidth=2)
+                            else:
+                                self.visualizer.ax.plot(lon, lat, 'co', markersize=8, zorder=4)
+
+                            # Add city label
+                            self.visualizer.ax.annotate(city, (lon, lat),
+                                                       textcoords="offset points",
+                                                       xytext=(0, 5), ha='center',
+                                                       fontsize=8, zorder=7)
+            else:
+                # Draw the full graph
+                self.visualizer.draw_graph(
+                    show_weights=self.show_weights_checkbox.isChecked(),
+                    title=f"Route: {result.start} → {result.goal} ({result.algorithm_name})"
+                )
+
+                # Highlight nodes we've visited so far
+                for idx, city in enumerate(partial_path):
+                    if city in self.graph.cities:
+                        city_obj = self.graph.cities[city]
+                        if hasattr(city_obj, 'latitude') and hasattr(city_obj, 'longitude'):
+                            lon = city_obj.longitude
+                            lat = city_obj.latitude
+
+                            if idx == len(partial_path) - 1:
+                                # Current node - yellow with orange edge
+                                self.visualizer.ax.plot(lon, lat, 'yo', markersize=10, zorder=5,
+                                                       markeredgecolor='orange', markeredgewidth=2)
+
+            # Draw the partial path line if show_path is checked
+            if self.show_path_checkbox.isChecked() and len(partial_path) > 1:
+                path_positions = []
+                for city in partial_path:
+                    if city in self.graph.cities:
+                        city_obj = self.graph.cities[city]
+                        if hasattr(city_obj, 'latitude') and hasattr(city_obj, 'longitude'):
+                            lon = city_obj.longitude
+                            lat = city_obj.latitude
+                            path_positions.append((lon, lat))
+
+                if len(path_positions) >= 2:
+                    lons = [pos[0] for pos in path_positions]
+                    lats = [pos[1] for pos in path_positions]
+                    self.visualizer.ax.plot(lons, lats, 'r-', linewidth=3, label='Path', zorder=5)
+
+                    # Mark start and goal
+                    if not hide_non_route:
+                        self.visualizer.ax.plot(lons[0], lats[0], 'go', markersize=12, label='Start', zorder=6)
+                        if num_steps >= len(result.path):
+                            self.visualizer.ax.plot(lons[-1], lats[-1], 'bs', markersize=12, label='Goal', zorder=6)
+
+                    self.visualizer.ax.legend()
+
+            # Set title and labels
+            step_info = f" (Step {num_steps}/{len(result.path)})"
+            self.visualizer.ax.set_title(f"Route: {result.start} → {result.goal} ({result.algorithm_name}){step_info}")
+            self.visualizer.ax.set_xlabel("Longitude")
+            self.visualizer.ax.set_ylabel("Latitude")
+            self.visualizer.ax.grid(True, alpha=0.3)
+
+            self.graph_canvas.draw()
+
+        except Exception as e:
+            print(f"[DEBUG] Animation error: {e}")
+            import traceback
+            traceback.print_exc()
+
+    def draw_static_result(self, result):
+        """Draw the complete route without animation"""
         # Update visualization - simplified approach without draw_search_result
         if self.visualizer:
             try:
@@ -692,13 +878,61 @@ class RouteFinderGUI(QMainWindow):
                 self.visualizer.ax = self.graph_figure.clear()
                 self.visualizer.ax = self.graph_figure.add_subplot(111)
 
-                # Draw the base graph
-                self.visualizer.draw_graph(
-                    show_weights=self.show_weights_checkbox.isChecked(),
-                    title=f"Route: {result.start} → {result.goal} ({result.algorithm_name})"
-                )
+                # Check if we should hide non-route nodes
+                hide_non_route = self.hide_non_route_checkbox.isChecked()
 
-                # If show_path is checked, manually highlight the path
+                if hide_non_route and result.path:
+                    # Draw only the nodes in the route
+                    route_set = set(result.path)
+
+                    # Draw edges between route nodes
+                    for i in range(len(result.path) - 1):
+                        city1 = result.path[i]
+                        city2 = result.path[i + 1]
+
+                        if city1 in self.graph.cities and city2 in self.graph.cities:
+                            city_obj1 = self.graph.cities[city1]
+                            city_obj2 = self.graph.cities[city2]
+
+                            if (hasattr(city_obj1, 'latitude') and hasattr(city_obj1, 'longitude') and
+                                hasattr(city_obj2, 'latitude') and hasattr(city_obj2, 'longitude')):
+
+                                lon1, lat1 = city_obj1.longitude, city_obj1.latitude
+                                lon2, lat2 = city_obj2.longitude, city_obj2.latitude
+
+                                # Draw edge
+                                self.visualizer.ax.plot([lon1, lon2], [lat1, lat2],
+                                                       'gray', linewidth=1, alpha=0.5, zorder=1)
+
+                    # Draw route nodes
+                    for city in result.path:
+                        if city in self.graph.cities:
+                            city_obj = self.graph.cities[city]
+                            if hasattr(city_obj, 'latitude') and hasattr(city_obj, 'longitude'):
+                                lon = city_obj.longitude
+                                lat = city_obj.latitude
+
+                                # Different colors for start, goal, and intermediate nodes
+                                if city == result.start:
+                                    self.visualizer.ax.plot(lon, lat, 'go', markersize=12, zorder=6)
+                                elif city == result.goal:
+                                    self.visualizer.ax.plot(lon, lat, 'bs', markersize=12, zorder=6)
+                                else:
+                                    self.visualizer.ax.plot(lon, lat, 'co', markersize=8, zorder=4)
+
+                                # Add city label
+                                self.visualizer.ax.annotate(city, (lon, lat),
+                                                           textcoords="offset points",
+                                                           xytext=(0, 5), ha='center',
+                                                           fontsize=8, zorder=7)
+                else:
+                    # Draw the full graph
+                    self.visualizer.draw_graph(
+                        show_weights=self.show_weights_checkbox.isChecked(),
+                        title=f"Route: {result.start} → {result.goal} ({result.algorithm_name})"
+                    )
+
+                # Always draw the path if show_path is checked
                 if self.show_path_checkbox.isChecked() and result.path and len(result.path) > 1:
                     # Get positions of cities in the path
                     path_positions = []
@@ -716,17 +950,42 @@ class RouteFinderGUI(QMainWindow):
                         lats = [pos[1] for pos in path_positions]
                         self.visualizer.ax.plot(lons, lats, 'r-', linewidth=3, label='Path', zorder=5)
 
-                        # Mark start and goal
-                        self.visualizer.ax.plot(lons[0], lats[0], 'go', markersize=12, label='Start', zorder=6)
-                        self.visualizer.ax.plot(lons[-1], lats[-1], 'bs', markersize=12, label='Goal', zorder=6)
+                        # Mark start and goal with legend
+                        if not hide_non_route:
+                            self.visualizer.ax.plot(lons[0], lats[0], 'go', markersize=12, label='Start', zorder=6)
+                            self.visualizer.ax.plot(lons[-1], lats[-1], 'bs', markersize=12, label='Goal', zorder=6)
+
                         self.visualizer.ax.legend()
+
+                # Set title and labels
+                self.visualizer.ax.set_title(f"Route: {result.start} → {result.goal} ({result.algorithm_name})")
+                self.visualizer.ax.set_xlabel("Longitude")
+                self.visualizer.ax.set_ylabel("Latitude")
+                self.visualizer.ax.grid(True, alpha=0.3)
 
                 self.graph_canvas.draw()
 
             except Exception as e:
                 print(f"[DEBUG] Visualization error: {e}")
+                import traceback
+                traceback.print_exc()
                 # If visualization fails, just refresh the graph normally
                 self.refresh_graph()
+
+
+    def update_node_visibility(self):
+        """Update graph visualization based on hide non-route nodes checkbox"""
+        # Stop any running animation
+        if self.animation_timer:
+            self.animation_timer.stop()
+            self.animation_timer = None
+
+        if self.current_results:
+            # Redisplay the last result with updated visibility settings
+            self.draw_static_result(self.current_results[-1])
+        else:
+            # Just refresh the normal graph if no results exist
+            self.refresh_graph()
 
     def run_comparison(self):
         """Run algorithm comparison"""
@@ -846,6 +1105,13 @@ class RouteFinderGUI(QMainWindow):
 
     def clear_results(self):
         """Clear all results"""
+        # Stop any running animation
+        if self.animation_timer:
+            self.animation_timer.stop()
+            self.animation_timer = None
+        self.animation_step = 0
+        self.animation_result = None
+
         self.results_text.clear()
         self.comparison_table.setRowCount(0)
         self.refresh_graph()

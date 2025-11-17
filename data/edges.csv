@@ -1,55 +1,130 @@
 city1,city2,distance_miles
-Rochester,Buffalo,73
-Rochester,Syracuse,87
-Rochester,Ithaca,89
-Rochester,Batavia,37
-Buffalo,Niagara,20
-Buffalo,Batavia,36
-Buffalo,Jamestown,71
-Syracuse,Albany,145
-Syracuse,Utica,55
-Syracuse,Ithaca,58
-Syracuse,Oswego,35
-Syracuse,Watertown,70
-Albany,Troy,8
-Albany,Schenectady,16
-Albany,Saratoga Springs,30
-Albany,Plattsburgh,155
-Albany,Poughkeepsie,80
-New York City,Yonkers,18
-New York City,White Plains,26
-New York City,Newburgh,60
-New York City,Poughkeepsie,75
-Ithaca,Binghamton,52
-Ithaca,Corning,42
-Ithaca,Elmira,34
-Binghamton,Syracuse,73
-Binghamton,Elmira,58
-Utica,Rome,16
-Utica,Syracuse,55
-Utica,Albany,95
-Utica,Oneonta,62
-Troy,Schenectady,10
+Albany,Bennington,32.4
+Albany,Oneonta,68
+Albany,Pittsfield,29.5
+Albany,Plattsburgh,142.2
+Albany,Poughkeepsie,66.3
+Albany,Saratoga Springs,29.8
+Albany,Schenectady,14.5
+Albany,Troy,6.2
+Albany,Utica,80.9
+Auburn,Canandaigua,38.4
+Batavia,Lockport,28
+Bennington,Troy,27.1
+Binghamton,Cortland,37.2
+Binghamton,Elmira,45.6
+Binghamton,Oneonta,50.1
+Binghamton,Scranton,49.4
+Boston,Springfield,80.3
+Boston,Worcester,38.6
+Bridgeport,Stamford,20.1
+Buffalo,Batavia,35.8
+Buffalo,Dunkirk,36.4
+Buffalo,Erie,80.7
+Buffalo,Jamestown,57.5
+Buffalo,Lockport,21.8
+Buffalo,Niagara Falls,16.6
+Buffalo,Olean,60
+Burlington,Montpelier,34.8
+Burlington,Plattsburgh,19.5
+Corning,Elmira,13.2
+Corning,Hornell,33.6
+Cortland,Oneonta,57.8
+Dunkirk,Erie,45.4
+Erie,Dunkirk,45.4
+Fulton,Oswego,10.3
+Fulton,Syracuse,23.3
+Geneva,Canandaigua,16.9
+Hartford,New Haven,34.2
+Hartford,Springfield,23.6
+Hartford,Worcester,56.4
+Hornell,Corning,33.6
+Hornell,Olean,42.8
+Ithaca,Auburn,33.9
+Ithaca,Binghamton,38.2
+Ithaca,Corning,35.1
+Ithaca,Cortland,19.6
+Ithaca,Elmira,29
+Ithaca,Geneva,38.2
+Jamestown,Corning,111.8
+Jamestown,Olean,41.3
+Jersey City,Paterson,15.3
+Lake Placid,Glens Falls,69.1
+Lockport,Niagara Falls,18.3
+Malone,Massena,29.7
+Middletown,Kingston,39.8
+Middletown,Poughkeepsie,31.3
+Montpelier,Rutland,49
+Montpelier,Watertown,166.6
+New Haven,Bridgeport,16.2
+New Haven,Stamford,36.3
+New York City,Bridgeport,53.5
+New York City,Jersey City,2
+New York City,New Haven,69.7
+New York City,Newark,8.9
+New York City,Newburgh,54.6
+New York City,Peekskill,40.1
+New York City,Poughkeepsie,68.4
+New York City,Stamford,33.9
+New York City,White Plains,25.6
+New York City,Yonkers,16.1
+Newark,Jersey City,6.9
+Newark,Paterson,12.5
+Newark,Trenton,46.7
+Newburgh,Kingston,29.3
+Newburgh,Middletown,21.7
+Ogdensburg,Massena,33.3
+Olean,Pittsburgh,139.7
+Oneonta,Albany,68
+Oswego,Fulton,10.3
+Peekskill,White Plains,19.5
+Philadelphia,Allentown,48.4
+Philadelphia,Newark,75.2
+Philadelphia,Scranton,104
+Philadelphia,Trenton,28.9
+Pittsburgh,Erie,116.8
+Pittsfield,Albany,29.5
+Pittsfield,Bennington,29.7
+Plattsburgh,Burlington,19.5
+Plattsburgh,Glens Falls,96.5
+Plattsburgh,Lake Placid,38.9
+Plattsburgh,Malone,42.6
+Plattsburgh,Massena,72.3
+Poughkeepsie,Kingston,16.1
+Poughkeepsie,Newburgh,14.4
+Poughkeepsie,Peekskill,28.4
+Rochester,Batavia,31.2
+Rochester,Buffalo,66.8
+Rochester,Canandaigua,25.2
+Rochester,Geneva,37.3
+Rochester,Ithaca,74.7
+Rochester,Syracuse,74.1
+Rome,Oneonta,56.1
+Rutland,Bennington,51.9
+Saratoga Springs,Glens Falls,17.2
+Scranton,Allentown,56
+Springfield,Albany,70.7
+Springfield,Hartford,23.6
+Stamford,White Plains,11.8
+Syracuse,Albany,124.2
+Syracuse,Auburn,22.6
+Syracuse,Binghamton,66.6
+Syracuse,Canandaigua,60.6
+Syracuse,Cortland,30.9
+Syracuse,Fulton,23.3
+Syracuse,Geneva,44.2
+Syracuse,Ithaca,45.5
+Syracuse,Oswego,33.5
+Syracuse,Rome,36.7
+Syracuse,Utica,46.3
+Syracuse,Watertown,65.1
+Trenton,Allentown,47.7
 Troy,Saratoga Springs,25
-Poughkeepsie,Kingston,26
-Poughkeepsie,Newburgh,25
-Watertown,Syracuse,70
-Watertown,Plattsburgh,165
-Plattsburgh,Glens Falls,100
-Saratoga Springs,Glens Falls,17
-Oswego,Syracuse,35
-Oswego,Watertown,82
-Auburn,Syracuse,26
-Auburn,Ithaca,37
-Jamestown,Buffalo,71
-Jamestown,Corning,95
-Rome,Utica,16
-Rome,Syracuse,46
-Corning,Elmira,18
-Corning,Ithaca,42
-Batavia,Rochester,37
-Batavia,Buffalo,37
-Oneonta,Binghamton,65
-Oneonta,Albany,76
-Newburgh,Kingston,35
-Newburgh,Poughkeepsie,25
+Troy,Schenectady,13.9
+Utica,Oneonta,45.6
+Utica,Rome,13.6
+Utica,Watertown,69.3
+Watertown,Massena,82.9
+Watertown,Ogdensburg,54
+Watertown,Plattsburgh,131.4
+Worcester,Springfield,41.8
