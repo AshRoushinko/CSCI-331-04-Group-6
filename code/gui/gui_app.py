@@ -809,7 +809,7 @@ class RouteFinderGUI(QMainWindow):
                             self.visualizer.ax.annotate(city, (lon, lat),
                                                        textcoords="offset points",
                                                        xytext=(0, 5), ha='center',
-                                                       fontsize=8, zorder=7)
+                                                       fontsize=2, zorder=1)
             else:
                 # Draw the full graph
                 self.visualizer.draw_graph(
@@ -924,7 +924,7 @@ class RouteFinderGUI(QMainWindow):
                                 self.visualizer.ax.annotate(city, (lon, lat),
                                                            textcoords="offset points",
                                                            xytext=(0, 5), ha='center',
-                                                           fontsize=8, zorder=7)
+                                                           fontsize=2, zorder=1)
                 else:
                     # Draw the full graph
                     self.visualizer.draw_graph(
@@ -1084,6 +1084,8 @@ class RouteFinderGUI(QMainWindow):
             self.visualizer.figure = self.graph_figure
             self.visualizer.ax = self.graph_figure.clear()
             self.visualizer.ax = self.graph_figure.add_subplot(111)
+            self.visualizer.ax.set_facecolor('#aab7a4')
+
             self.visualizer.draw_graph(
                 show_weights=self.show_weights_checkbox.isChecked(),
                 title="New York State Route Network"

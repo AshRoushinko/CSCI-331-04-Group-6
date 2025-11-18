@@ -83,11 +83,11 @@ class GraphVisualizer:
             elif node == "Rochester":
                 node_color_list.append('#ff6b6b')  # Red for Rochester (start)
             else:
-                node_color_list.append('#4ecdc4')  # Teal for other cities
+                node_color_list.append('#f9f4ee')  # Teal for other cities
 
         # Draw all edges first (in gray)
         nx.draw_networkx_edges(self.G, self.pos,
-                               edge_color='gray',
+                               edge_color='black',
                                width=1.5,
                                alpha=0.5,
                                ax=self.ax)
@@ -111,7 +111,7 @@ class GraphVisualizer:
 
         # Draw labels
         nx.draw_networkx_labels(self.G, self.pos,
-                                font_size=8,
+                                font_size=5,
                                 font_weight='bold',
                                 ax=self.ax)
 

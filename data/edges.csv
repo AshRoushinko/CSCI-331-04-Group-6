@@ -8,17 +8,33 @@ Albany,Saratoga Springs,29.8
 Albany,Schenectady,14.5
 Albany,Troy,6.2
 Albany,Utica,80.9
+Albuquerque,Santa Fe,57.8
+Atlanta,Birmingham,140.3
+Atlanta,Birmingham,140.3
+Atlanta,Tampa,416.7
 Auburn,Canandaigua,38.4
+Austin,Dallas,182.1
+Baltimore,Pittsburgh,196.3
+Baltimore,Washington DC,34.9
 Batavia,Lockport,28
+Baton Rouge,Houston,254.5
 Bennington,Troy,27.1
+Billings,Boise,406.6
+Billings,Spokane,441.9
 Binghamton,Cortland,37.2
 Binghamton,Elmira,45.6
 Binghamton,Oneonta,50.1
 Binghamton,Scranton,49.4
+Binghamton,Scranton,49.4
+Birmingham,Atlanta,140.3
+Birmingham,Memphis,216.4
+Boise,Portland,344.7
+Boston,Albany,138.9
 Boston,Springfield,80.3
 Boston,Worcester,38.6
 Bridgeport,Stamford,20.1
 Buffalo,Batavia,35.8
+Buffalo,Cleveland,173.1
 Buffalo,Dunkirk,36.4
 Buffalo,Erie,80.7
 Buffalo,Jamestown,57.5
@@ -27,44 +43,103 @@ Buffalo,Niagara Falls,16.6
 Buffalo,Olean,60
 Burlington,Montpelier,34.8
 Burlington,Plattsburgh,19.5
+Charleston WV,Charlotte,220.1
+Charlotte,Atlanta,226.2
+Cheyenne,Denver,97.2
+Cheyenne,Salt Lake City,369.8
+Chicago,Des Moines,309.7
+Chicago,Indianapolis,164.8
+Chicago,Milwaukee,81.4
+Chicago,Milwaukee,81.4
+Cincinnati,Columbus,100.1
+Cincinnati,Indianapolis,99.1
+Cincinnati,Knoxville,219.5
+Cleveland,Chicago,307.3
+Cleveland,Toledo,95.9
+Colorado Springs,Albuquerque,278
+Columbus,Cleveland,126.3
+Columbus,Indianapolis,168.1
 Corning,Elmira,13.2
 Corning,Hornell,33.6
 Cortland,Oneonta,57.8
+Dallas,Fort Worth,31.1
+Dallas,Fort Worth,31.1
+Dallas,Houston,224.8
+Dallas,Oklahoma City,190.4
+Denver,Colorado Springs,63.2
+Denver,Salt Lake City,370.6
+Des Moines,Minneapolis,235
+Des Moines,Omaha,121.8
+Detroit,Grand Rapids,140.2
+Detroit,Toledo,53.3
 Dunkirk,Erie,45.4
-Erie,Dunkirk,45.4
+Fresno,Sacramento,158
+Fresno,San Francisco,161.5
 Fulton,Oswego,10.3
 Fulton,Syracuse,23.3
 Geneva,Canandaigua,16.9
+Greensboro,Charlotte,83
+Greensboro,Roanoke,83.2
 Hartford,New Haven,34.2
 Hartford,Springfield,23.6
 Hartford,Worcester,56.4
-Hornell,Corning,33.6
 Hornell,Olean,42.8
+Houston,San Antonio,189.1
+Indianapolis,Chicago,164.8
+Indianapolis,St Louis,230.3
 Ithaca,Auburn,33.9
 Ithaca,Binghamton,38.2
 Ithaca,Corning,35.1
 Ithaca,Cortland,19.6
 Ithaca,Elmira,29
 Ithaca,Geneva,38.2
-Jamestown,Corning,111.8
+Jacksonville,Miami,328.2
+Jacksonville,Mobile,380.8
 Jamestown,Olean,41.3
 Jersey City,Paterson,15.3
+Kansas City,Denver,557.2
+Kansas City,Des Moines,179
+Knoxville,Atlanta,155.1
+Knoxville,Nashville,160.4
 Lake Placid,Glens Falls,69.1
+Las Vegas,Los Angeles,228.4
+Las Vegas,Salt Lake City,362.6
+Little Rock,Dallas,292.5
+Little Rock,Oklahoma City,299.6
 Lockport,Niagara Falls,18.3
+Los Angeles,Fresno,204.9
+Los Angeles,San Diego,111.5
+Madison,Minneapolis,232.7
 Malone,Massena,29.7
+Memphis,Little Rock,129.9
+Memphis,Nashville,196.3
+Miami,Tampa,205.8
 Middletown,Kingston,39.8
 Middletown,Poughkeepsie,31.3
+Milwaukee,Madison,75.5
+Milwaukee,Minneapolis,298
+Minneapolis,Billings,740.4
+Minneapolis,Billings,740.4
+Minneapolis,Duluth,137
+Minneapolis,St Paul,8.7
+Mobile,New Orleans,131.6
 Montpelier,Rutland,49
 Montpelier,Watertown,166.6
+Nashville,Atlanta,214.9
+Nashville,Memphis,196.3
+Nashville,St Louis,253.3
 New Haven,Bridgeport,16.2
 New Haven,Stamford,36.3
+New Orleans,Baton Rouge,75.1
 New York City,Bridgeport,53.5
 New York City,Jersey City,2
 New York City,New Haven,69.7
 New York City,Newark,8.9
 New York City,Newburgh,54.6
 New York City,Peekskill,40.1
+New York City,Philadelphia,80.5
 New York City,Poughkeepsie,68.4
+New York City,Scranton,98.8
 New York City,Stamford,33.9
 New York City,White Plains,25.6
 New York City,Yonkers,16.1
@@ -73,26 +148,48 @@ Newark,Paterson,12.5
 Newark,Trenton,46.7
 Newburgh,Kingston,29.3
 Newburgh,Middletown,21.7
+Norfolk,Richmond,79.2
 Ogdensburg,Massena,33.3
+Oklahoma City,Albuquerque,515.7
+Oklahoma City,Kansas City,298.4
 Olean,Pittsburgh,139.7
-Oneonta,Albany,68
+Omaha,Cheyenne,461.8
+Omaha,Des Moines,121.8
+Omaha,Kansas City,165.3
+Orlando,Jacksonville,125.1
 Oswego,Fulton,10.3
 Peekskill,White Plains,19.5
 Philadelphia,Allentown,48.4
+Philadelphia,Baltimore,89.6
 Philadelphia,Newark,75.2
 Philadelphia,Scranton,104
 Philadelphia,Trenton,28.9
+Phoenix,Albuquerque,329.6
+Phoenix,Los Angeles,356.9
+Phoenix,Tucson,106.1
+Pittsburgh,Charleston WV,168.8
+Pittsburgh,Columbus,161.9
 Pittsburgh,Erie,116.8
-Pittsfield,Albany,29.5
 Pittsfield,Bennington,29.7
 Plattsburgh,Burlington,19.5
 Plattsburgh,Glens Falls,96.5
 Plattsburgh,Lake Placid,38.9
 Plattsburgh,Malone,42.6
 Plattsburgh,Massena,72.3
+Portland,Sacramento,482.9
+Portland,Spokane,290
 Poughkeepsie,Kingston,16.1
 Poughkeepsie,Newburgh,14.4
 Poughkeepsie,Peekskill,28.4
+Raleigh,Greensboro,67.7
+Raleigh,Jacksonville,414.9
+Reno,Sacramento,111.5
+Reno,San Francisco,185.6
+Richmond,Greensboro,165.2
+Richmond,Raleigh,138.7
+Roanoke,Greensboro,83.2
+Roanoke,Knoxville,238.5
+Roanoke,Richmond,138.8
 Rochester,Batavia,31.2
 Rochester,Buffalo,66.8
 Rochester,Canandaigua,25.2
@@ -101,13 +198,31 @@ Rochester,Ithaca,74.7
 Rochester,Syracuse,74.1
 Rome,Oneonta,56.1
 Rutland,Bennington,51.9
+Sacramento,San Francisco,75
+Sacramento,San Francisco,75
+Salt Lake City,Boise,295.9
+Salt Lake City,Denver,370.6
+Salt Lake City,Reno,426.9
+San Antonio,Austin,73.6
+San Antonio,Austin,73.6
+San Francisco,Sacramento,75
+San Jose,Los Angeles,305.5
+San Jose,San Francisco,42
 Saratoga Springs,Glens Falls,17.2
+Savannah,Atlanta,223.3
+Savannah,Jacksonville,125.4
 Scranton,Allentown,56
+Scranton,Allentown,56
+Seattle,Portland,145.4
+Spokane,Seattle,228.4
 Springfield,Albany,70.7
 Springfield,Hartford,23.6
+St Louis,Chicago,262.3
+St Louis,Kansas City,237.8
 Stamford,White Plains,11.8
 Syracuse,Albany,124.2
 Syracuse,Auburn,22.6
+Syracuse,Binghamton,66.6
 Syracuse,Binghamton,66.6
 Syracuse,Canandaigua,60.6
 Syracuse,Cortland,30.9
@@ -118,12 +233,18 @@ Syracuse,Oswego,33.5
 Syracuse,Rome,36.7
 Syracuse,Utica,46.3
 Syracuse,Watertown,65.1
+Tampa,Orlando,77.2
+Toledo,Chicago,211.4
+Toledo,Cincinnati,183.5
 Trenton,Allentown,47.7
 Troy,Saratoga Springs,25
 Troy,Schenectady,13.9
+Tulsa,Kansas City,217.7
+Tulsa,Oklahoma City,97.7
 Utica,Oneonta,45.6
 Utica,Rome,13.6
 Utica,Watertown,69.3
+Washington DC,Richmond,96.9
 Watertown,Massena,82.9
 Watertown,Ogdensburg,54
 Watertown,Plattsburgh,131.4
