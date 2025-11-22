@@ -7,6 +7,7 @@ from algorithms.dfs import DFS
 from algorithms.ucs import UCS
 from algorithms.greedy import GreedyBestFirst
 from algorithms.astar import AStar
+from algorithms.ids import IDS
 
 ALGOS = {
     "DFS": DFS,
@@ -14,7 +15,7 @@ ALGOS = {
     "UCS": UCS,
     "Greedy": GreedyBestFirst,
     "A*": AStar,
-    # "IDS": IDS,
+    "IDS": IDS,
 }
 
 

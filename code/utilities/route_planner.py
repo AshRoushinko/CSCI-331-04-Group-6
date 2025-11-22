@@ -18,6 +18,7 @@ try:
     from code.algorithms.ucs import UCS
     from code.algorithms.greedy import GreedyBestFirst
     from code.algorithms.astar import AStar
+    from code.algorithms.ids import IDS
     from code.heartofitall.graph import Graph
     from code.heartofitall.search_results import SearchResult
 except Exception:  # pragma: no cover
@@ -26,6 +27,7 @@ except Exception:  # pragma: no cover
     from code.algorithms.ucs import UCS
     from code.algorithms.greedy import GreedyBestFirst
     from code.algorithms.astar import AStar
+    from code.algorithms.ids import IDS
     from code.heartofitall.graph import Graph
     from code.heartofitall.search_results import SearchResult
 
@@ -33,6 +35,7 @@ ALGO_REGISTRY: Dict[str, Callable[[Graph, str, str], "SearchAlgorithm"]] = {
     "DFS": DFS,
     "BFS": BFS,
     "UCS": UCS,
+    "IDS": IDS,
     "Greedy": GreedyBestFirst,
     "A*": AStar,
     # "IDA*": IDAStar,  # add when implemented
@@ -44,12 +47,14 @@ ALGO_NAME_MAPPING = {
     "BFS (Breadth-First Search)": "BFS",
     "UCS (Uniform Cost Search)": "UCS",
     "Greedy Best-First Search": "Greedy",
+    "IDS (Iterative Deepening Search)": "IDS",
     "A* Search": "A*",
     "A*": "A*",
     "Greedy": "Greedy",
     "DFS": "DFS",
     "BFS": "BFS",
     "UCS": "UCS",
+    "IDS": "IDS"
 }
 
 

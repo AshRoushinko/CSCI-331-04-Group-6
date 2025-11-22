@@ -266,6 +266,7 @@ class RouteFinderGUI(QMainWindow):
             "DFS (Depth-First Search)": "DFS",
             "BFS (Breadth-First Search)": "BFS",
             "UCS (Uniform Cost Search)": "UCS",
+            "IDS (Iterative Deepening Search)": "IDS",
             "Greedy Best-First Search": "Greedy",
             "Greedy Best-First": "Greedy",  # Alternative format
             "A* Search": "A*",
@@ -277,6 +278,7 @@ class RouteFinderGUI(QMainWindow):
             "DFS (Depth-First Search)",
             "BFS (Breadth-First Search)",
             "UCS (Uniform Cost Search)",
+            "IDS(Iterative Deepening Search)",
             "Greedy Best-First Search",
             "A* Search"
         ]
@@ -393,7 +395,7 @@ class RouteFinderGUI(QMainWindow):
         algo_select_layout = QHBoxLayout()
 
         self.algo_checkboxes = {}
-        algorithms = ["DFS", "BFS", "UCS", "Greedy", "A*"]
+        algorithms = ["DFS", "BFS", "UCS", "IDS", "Greedy", "A*"]
         for algo in algorithms:
             checkbox = QCheckBox(algo)
             checkbox.setChecked(True)
@@ -1001,7 +1003,7 @@ class RouteFinderGUI(QMainWindow):
             algo for algo, checkbox in self.algo_checkboxes.items()
             if checkbox.isChecked()
         ]
-
+        print(selected_algos)
         if not selected_algos:
             QMessageBox.warning(self, "Warning", "Please select at least one algorithm")
             return
@@ -1055,7 +1057,9 @@ class RouteFinderGUI(QMainWindow):
                 ax_dest.set_title(ax_src.get_title())
                 ax_dest.set_xlabel(ax_src.get_xlabel())
                 ax_dest.set_ylabel(ax_src.get_ylabel())
+                #ax_dest.set_xticks([6])
                 ax_dest.set_xticklabels([r.algorithm_name for r in comparison.results])
+                #print([r.algorithm_name for r in comparison.results])
                 ax_dest.grid(True, alpha=0.3)
 
             self.comparison_figure.suptitle(
@@ -1195,6 +1199,7 @@ class RouteFinderGUI(QMainWindow):
             "• DFS (Depth-First Search)\n"
             "• BFS (Breadth-First Search)\n"
             "• UCS (Uniform Cost Search)\n"
+            "• IDS (Iterative Deepening Search)\n\n"
             "• Greedy Best-First Search\n"
             "• A* Search\n\n"
             "CSCI Project 3 - Group 6\n"
