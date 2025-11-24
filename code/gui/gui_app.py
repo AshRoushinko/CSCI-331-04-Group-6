@@ -271,6 +271,8 @@ class RouteFinderGUI(QMainWindow):
             "Greedy Best-First": "Greedy",  # Alternative format
             "A* Search": "A*",
             "A*": "A*",  # Short format
+            "IDA* Search": "IDA*",
+            "IDA*": "IDA*",  # Short format
         }
 
         # Display names for dropdown
@@ -280,7 +282,8 @@ class RouteFinderGUI(QMainWindow):
             "UCS (Uniform Cost Search)",
             "IDS(Iterative Deepening Search)",
             "Greedy Best-First Search",
-            "A* Search"
+            "A* Search",
+            "IDA* Search",
         ]
         self.algo_combo.addItems(display_names)
 
@@ -395,7 +398,7 @@ class RouteFinderGUI(QMainWindow):
         algo_select_layout = QHBoxLayout()
 
         self.algo_checkboxes = {}
-        algorithms = ["DFS", "BFS", "UCS", "IDS", "Greedy", "A*"]
+        algorithms = ["DFS", "BFS", "UCS", "IDS", "Greedy", "A*", "IDA*"]
         for algo in algorithms:
             checkbox = QCheckBox(algo)
             checkbox.setChecked(True)
@@ -1026,7 +1029,7 @@ class RouteFinderGUI(QMainWindow):
                 self.comparison_table.setItem(i, 1, QTableWidgetItem(str(len(result.path))))
                 self.comparison_table.setItem(i, 2, QTableWidgetItem(f"{result.cost:.1f}"))
                 self.comparison_table.setItem(i, 3, QTableWidgetItem(str(result.nodes_expanded)))
-                self.comparison_table.setItem(i, 4, QTableWidgetItem(f"{result.runtime*1000:.3f}"))
+                self.comparison_table.setItem(i, 4, QTableWidgetItem(f"{result.runtime * 1000:.3f}"))
 
                 optimal_text = "Yes" if result.is_optimal else "No"
                 optimal_item = QTableWidgetItem(optimal_text)
@@ -1045,21 +1048,27 @@ class RouteFinderGUI(QMainWindow):
                 ax_dest = self.comparison_figure.add_subplot(
                     1, 3, comparison_fig.axes.index(ax_src) + 1
                 )
-                # Copy the content
+                # Copy the content (lines)
                 for line in ax_src.lines:
                     ax_dest.plot(line.get_xdata(), line.get_ydata())
+
+                # Copy the content (bars)
                 for bar_container in ax_src.containers:
                     heights = [bar.get_height() for bar in bar_container]
-                    positions = [bar.get_x() for bar in bar_container]
                     colors = [bar.get_facecolor() for bar in bar_container]
-                    ax_dest.bar(range(len(heights)), heights, color=colors[0])
+
+                    # --- FIX 1: Use the full 'colors' list, not just the first element ---
+                    ax_dest.bar(range(len(heights)), heights, color=colors)
 
                 ax_dest.set_title(ax_src.get_title())
                 ax_dest.set_xlabel(ax_src.get_xlabel())
                 ax_dest.set_ylabel(ax_src.get_ylabel())
-                #ax_dest.set_xticks([6])
+
+                # --- FIX 2: Explicitly set ticks to match the data range (0, 1, 2...) ---
+                # This ensures the labels align correctly with the bars
+                ax_dest.set_xticks(range(len(comparison.results)))
                 ax_dest.set_xticklabels([r.algorithm_name for r in comparison.results])
-                #print([r.algorithm_name for r in comparison.results])
+
                 ax_dest.grid(True, alpha=0.3)
 
             self.comparison_figure.suptitle(
@@ -1199,9 +1208,10 @@ class RouteFinderGUI(QMainWindow):
             "• DFS (Depth-First Search)\n"
             "• BFS (Breadth-First Search)\n"
             "• UCS (Uniform Cost Search)\n"
-            "• IDS (Iterative Deepening Search)\n\n"
+            "• IDS (Iterative Deepening Search)\n"
             "• Greedy Best-First Search\n"
-            "• A* Search\n\n"
+            "• A* Search\n"
+            "• IDA* Search\n\n"
             "CSCI Project 3 - Group 6\n"
             "Version 1.0"
         )

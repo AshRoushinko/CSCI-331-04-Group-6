@@ -19,6 +19,7 @@ try:
     from code.algorithms.greedy import GreedyBestFirst
     from code.algorithms.astar import AStar
     from code.algorithms.ids import IDS
+    from code.algorithms.idastar import IDAStar
     from code.heartofitall.graph import Graph
     from code.heartofitall.search_results import SearchResult
 except Exception:  # pragma: no cover
@@ -28,6 +29,7 @@ except Exception:  # pragma: no cover
     from code.algorithms.greedy import GreedyBestFirst
     from code.algorithms.astar import AStar
     from code.algorithms.ids import IDS
+    from code.algorithms.idastar import IDAStar
     from code.heartofitall.graph import Graph
     from code.heartofitall.search_results import SearchResult
 
@@ -38,7 +40,7 @@ ALGO_REGISTRY: Dict[str, Callable[[Graph, str, str], "SearchAlgorithm"]] = {
     "IDS": IDS,
     "Greedy": GreedyBestFirst,
     "A*": AStar,
-    # "IDA*": IDAStar,  # add when implemented
+    "IDA*": IDAStar,
 }
 
 # Mapping for full display names to short names
@@ -54,7 +56,8 @@ ALGO_NAME_MAPPING = {
     "DFS": "DFS",
     "BFS": "BFS",
     "UCS": "UCS",
-    "IDS": "IDS"
+    "IDS": "IDS",
+    "IDA*": "IDA*"
 }
 
 

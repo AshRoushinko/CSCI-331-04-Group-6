@@ -60,7 +60,7 @@ class GraphVisualizer:
                    highlight_path: Optional[List[str]] = None,
                    show_weights: bool = True,
                    node_colors: Optional[Dict[str, str]] = None,
-                   title: str = "New York State Route Network"):
+                   title: str = "United States Route Network"):
         """
         Draw the graph with optional path highlighting
 
