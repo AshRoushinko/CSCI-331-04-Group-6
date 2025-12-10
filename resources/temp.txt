@@ -94,18 +94,6 @@ CSCI-{331}-{04}-Group-{6}/
 
 ```
 
-## Deliverables Checklist
-- [ ] Functional graph with 20-30 NY cities
-- [ ] All 7 search algorithms implemented
-- [ ] Visual graph representation
-- [ ] Performance comparison analysis
-- [ ] Optimal algorithm identification
-- [ ] Complete documentation
-- [ ] Presentation materials
-- [ ] Clean, well-commented code
-- [ ] Comprehensive README
-
-
 
 
 

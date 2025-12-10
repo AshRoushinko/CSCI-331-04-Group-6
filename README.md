@@ -8,6 +8,8 @@ New York City Route Planner
     How to Run:
         - Install Packages pyqt6
         - pip install pyqt6 / brew install pyqt6
-
-        - In Pycharm, click 'Run'
+       
+        -NY Route Planner GUI Requirements
+        -Install with: pip install -r requirements.txt
+        - In Pycharm, click 'Run' in gui_app.py
 

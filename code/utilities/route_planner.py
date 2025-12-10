@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Callable, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Resilient imports: work whether you're running as a package or flat files
+
 try:
     from code.algorithms.bfs import BFS
     from code.algorithms.dfs import DFS
